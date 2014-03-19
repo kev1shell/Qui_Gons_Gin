@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>EaselJS demo: Getting started</title>
+	<script src="lib/easeljs-0.7.1.min.js"></script>
+	<script>
+		var canvas, stage, image, bitmap;
+		
+		function init() {
+			
+			stage = new createjs.Stage("demoCanvas");
+			stage.autoClear = true;
+			 
+			image = new Image();
+			image.onload = handleImageLoad;
+			image.src = "maps/survivorIsland2.png";
+			
+			var circle = new createjs.Shape();
+			circle.graphics.beginFill("red").drawCircle(0, 0, 50);
+			circle.x = 100;
+			circle.y = 100;
+			stage.addChild(circle);
+			
+			stage.update();
+		}
+		
+		function handleImageLoad()
+		{
+			bitmap = new createjs.Bitmap(image);
+			bitmap.x = 0;
+			bitmap.y = 0;
+			stage.addChild(bitmap);
+			stage.update();
+		}
+		
+	</script>
+</head>
+<body onLoad="init();">
+	<canvas id="demoCanvas" width="560" height="288">
+		alternate content
+	</canvas>
+</body>
+</html>
