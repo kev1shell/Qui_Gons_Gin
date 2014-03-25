@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<style src="css/UIclasses.css"></style>
+<head>
+	<title>VillageWars</title>
+	<script src="lib/easeljs-0.7.1.min.js"></script>
+	<script>
+		var food = 0;
+		var timber = 0;
+		var stone = 0;
+		
+		var farms = 0;
+		var villagers = 0;
+		var warriors = 0;
+		
+		var infoText = "hello";
+		
+		var foodRate = 10;
+		var timberRate = 0;
+		var stoneRate = 0;
+		
+		var turnNum = 0;
+	</script>
+	
+	<script>
+		var canvas, stage;
+		var mapElement, bitmap;
+		var resourceElement, bitmap2;
+		
+		function updateTurnNum()
+		{	
+			
+			if(stage.getChildByName("IEtext") == null)
+			{
+				var IEtext = new createjs.Text(infoText, "bold 14px Arial", "black");
+				IEtext.x = 340;
+				IEtext.y = 13;
+				IEtext.name = "IEtext";
+				stage.addChild(IEtext);
+			}
+			else
+			{
+				stage.getChildByName("IEtext").text = infoText;
+			}
+			
+		}
+		
+		function updateInfoText()
+		{
+			//info text
+			if(stage.getChildByName("IEtext") == null)
+			{
+				var IEtext = new createjs.Text(infoText, "bold 14px Arial", "black");
+				IEtext.x = 340;
+				IEtext.y = 13;
+				IEtext.name = "IEtext";
+				stage.addChild(IEtext);
+			}
+			else
+			{
+				stage.getChildByName("IEtext").text = infoText;
+			}
+			
+			stage.update();
+		}
+		
+		function updateResources()
+		{
+			//food text
+			if(stage.getChildByName("REfoodNum") == null)
+			{
+				var REfoodNum = new createjs.Text(food, "bold 14px Arial", "black");
+				REfoodNum.x = 35;
+				REfoodNum.y = 3;
+				REfoodNum.name = "REfoodNum";
+				stage.addChild(REfoodNum);
+			}
+			else
+			{
+				stage.getChildByName("REfoodNum").text = food;
+			}
+			
+			//timber text
+			if(stage.getChildByName("REtimberNum") == null)
+			{
+				var REtimberNum = new createjs.Text(timber, "bold 14px Arial", "black");
+				REtimberNum.x = 130;
+				REtimberNum.y = 3;
+				REtimberNum.name = "REtimberNum";
+				stage.addChild(REtimberNum);
+			}
+			else
+			{
+				stage.getChildByName("REtimberNum").text = timber;
+			}
+			
+			//stone text
+			if(stage.getChildByName("REstoneNum") == null)
+			{
+				var REstoneNum = new createjs.Text(stone, "bold 14px Arial", "black");
+				REstoneNum.x = 235;
+				REstoneNum.y = 3;
+				REstoneNum.name = "REstoneNum";
+				stage.addChild(REstoneNum);
+			}
+			else
+			{
+				stage.getChildByName("REstoneNum").text = stone;
+			}
+			
+			//farm counter text
+			if(stage.getChildByName("REfarmNum") == null)
+			{
+				var REfarmNum = new createjs.Text(farms, "bold 14px Arial", "black");
+				REfarmNum.x = 35;
+				REfarmNum.y = 24;
+				REfarmNum.name = "REfarmNum";
+				stage.addChild(REfarmNum);
+			}
+			else
+			{
+				stage.getChildByName("REfarmNum").text = farms;
+			}
+			
+			//villager counter text
+			if(stage.getChildByName("REvillagerNum") == null)
+			{
+				var REvillagerNum = new createjs.Text(villagers, "bold 14px Arial", "black");
+				REvillagerNum.x = 130;
+				REvillagerNum.y = 24;
+				REvillagerNum.name = "REvillagerNum";
+				stage.addChild(REvillagerNum);
+			}
+			else
+			{
+				stage.getChildByName("REvillagerNum").text = villagers;
+			}
+			
+			//stone text
+			if(stage.getChildByName("REwarriorNum") == null)
+			{
+				var REwarriorNum = new createjs.Text(warriors, "bold 14px Arial", "black");
+				REwarriorNum.x = 235;
+				REwarriorNum.y = 24;
+				REwarriorNum.name = "REwarriorNum";
+				stage.addChild(REwarriorNum);
+			}
+			else
+			{
+				stage.getChildByName("REwarriorNum").text = warriors;
+			}
+			
+			stage.update();
+		}
+		
+		function init()
+		{
+			
+			//graphics stage set-up
+			stage = new createjs.Stage("demoCanvas");
+			stage.autoClear = true;
+			 
+			//resource element 
+			resourceElement = new Image();
+			resourceElement.onload = handleRELoad;
+			resourceElement.src = "assets/sprites/ui/ResourceElement.png";
+			
+			//info element
+			var IEsquare = new createjs.Shape();
+			IEsquare.graphics.beginStroke("Black").drawRect(0, 0, 350, 43);
+			IEsquare.x = 325;
+			IEsquare.y = 0;
+			stage.addChild(IEsquare);
+			updateInfoText();
+			
+			//map element
+			mapElement = new Image();
+			mapElement.onload = handleMapLoad;
+			mapElement.src = "assets/maps/survivorIsland3.png";
+			
+			//end turn element
+			var ETsquare = new createjs.Shape();
+			ETsquare.graphics.beginFill("yellow").drawRect(0, 0, 100, 50);
+			ETsquare.x = 740;
+			ETsquare.y = 487;
+			stage.addChild(ETsquare);
+			
+			//end turn text
+			var ETtext = new createjs.Text("End Turn", "bold 20px Arial", "black");
+			ETtext.x = 745;
+			ETtext.y = 500;
+			stage.addChild(ETtext);
+			
+			//turn counter
+			var TCsquare = new createjs.Shape();
+			TCsquare.graphics.beginFill("black").drawRect(0, 0, 40, 50);
+			stage.update();
+			TCsquare.x = ETsquare.x - 40;
+			TCsquare.y = 487;
+			stage.addChild(TCsquare);
+			
+			//turn counter text
+			var TCtital = new createjs.Text("Turn", "bold 14px Arial", "white");
+			var TCnum = new createjs.Text(turnNum, "bold 14px Arial", "white");
+			TCtital.x = 705;
+			TCtital.y = 490;
+			TCnum.x = 710;
+			TCnum.y = 510;
+			stage.addChild(TCtital);
+			stage.addChild(TCnum);
+			
+			stage.update();
+		}
+		
+		function handleMapMouseEvent(evt) {
+			//output.text = "evt.target: "+evt.target+", evt.type: "+evt.type;
+			
+			if(evt.type == "click")
+			{
+				var x = evt.stageX - evt.target.x;
+				var y = evt.stageY - evt.target.y;
+				var row = Math.floor(y/24);
+				var column = Math.floor(x/24);
+				infoText = "Tile:(" + row + "," + column + ")";
+			}
+			updateInfoText();
+			//stage.update();
+		}
+		
+		function handleRELoad()
+		{
+			bitmap2 = new createjs.Bitmap(resourceElement);
+			bitmap2.x = 0;
+			bitmap2.y = 0;
+			stage.addChild(bitmap2);
+			updateResources();
+			stage.update();
+		}
+		
+		function handleMapLoad()
+		{
+			bitmap = new createjs.Bitmap(mapElement);
+			bitmap.x = 0;
+			bitmap.y = 50;
+			
+			var mapBackgroud = new createjs.Shape();
+			mapBackgroud.graphics.beginFill("white").drawRect(0, 0, 840, 432);
+			mapBackgroud.x = bitmap.x;
+			mapBackgroud.y = bitmap.y;
+			mapBackgroud.on("click", handleMapMouseEvent);
+			
+			stage.addChild(mapBackgroud);
+			stage.addChild(bitmap);
+			
+			stage.update();
+		}
+		
+	</script>
+	
+	<p id="testOutput"></p>
+	<script>
+		function onTileClick()
+		{
+			document.getElementById("testOutput").innerHTML = "TIMMAH!";
+		}
+	</script>
+</head>
+<body onLoad="init();">
+	<canvas id="demoCanvas" width="1200" height="700">
+		alternate content
+	</canvas>
+</body>
+</html>
