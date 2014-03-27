@@ -4,29 +4,23 @@
 <head>
 	<title>VillageWars</title>
 	<script src="http://code.createjs.com/easeljs-0.7.1.min.js"></script>
+	<script src = "javascript/objects.js">
+		//objects (their like classes) (I think)
+	</script>
 	<script>
-		var food = 0;
-		var timber = 0;
-		var stone = 0;
-		
-		var farms = 0;
-		var villagers = 0;
-		var warriors = 0;
+		/*-------------------global variables----------------------*/
+		var player = Player;
 		
 		var infoText = "hello";
 		
-		var foodRate = 10;
-		var timberRate = 0;
-		var stoneRate = 0;
-		
 		var turnNum = 0;
-	</script>
-	
-	<script>
+		
 		var canvas, stage;
 		var mapElement, bitmap;
 		var resourceElement, bitmap2;
 		
+		/*---------------------------------------------------------*/
+		/*-------------------update functions----------------------*/
 		function updateTurnNum()
 		{	
 			
@@ -71,21 +65,52 @@
 			//food text
 			if(stage.getChildByName("REfoodNum") == null)
 			{
-				var REfoodNum = new createjs.Text(food, "bold 14px Arial", "black");
-				REfoodNum.x = 35;
+				var REfoodNum = new createjs.Text(player.bank.food, "bold 14px Arial", "black");
+				REfoodNum.x = 31;
 				REfoodNum.y = 3;
 				REfoodNum.name = "REfoodNum";
 				stage.addChild(REfoodNum);
+				
+				var foodRateColor = "black";
+				var extraPlus = "";
+				if(player.bank.foodRate > 0)
+				{
+					foodRateColor = "green";
+					extraPlus = "+";
+				}
+				else if(player.bank.foodRate < 0)
+				{
+					foodRateColor = "red";
+				}
+				
+				var REfoodRate = new createjs.Text("(" + extraPlus + player.bank.foodRate + ")", "bold 14px Arial", foodRateColor);
+				REfoodRate.x = REfoodNum.x + REfoodNum.getMeasuredWidth() + 2; 
+				REfoodRate.y = REfoodNum.y;
+				REfoodRate.name = "REfoodRate";
+				stage.addChild(REfoodRate);
 			}
 			else
 			{
-				stage.getChildByName("REfoodNum").text = food;
+				stage.getChildByName("REfoodNum").text = player.bank.food;
+				
+				var extraPlus = "";
+				if(player.bank.foodRate > 0)
+				{
+					stage.getChildByName("REfoodRate").color = "green";
+					extraPlus = "+";
+				}
+				else if(player.bank.foodRate < 0)
+				{
+					stage.getChildByName("REfoodRate").color = "red";
+				}
+				stage.getChildByName("REfoodRate").text = "(" + extraPlus + player.bank.foodRate + ")";
+				stage.getChildByName("REfoodRate").x = stage.getChildByName("REfoodNum").x + stage.getChildByName("REfoodNum").getMeasuredWidth() + 2;
 			}
 			
 			//timber text
 			if(stage.getChildByName("REtimberNum") == null)
 			{
-				var REtimberNum = new createjs.Text(timber, "bold 14px Arial", "black");
+				var REtimberNum = new createjs.Text(player.bank.timber + " (+" + player.bank.timberRate + ")", "bold 14px Arial", "black");
 				REtimberNum.x = 130;
 				REtimberNum.y = 3;
 				REtimberNum.name = "REtimberNum";
@@ -93,13 +118,13 @@
 			}
 			else
 			{
-				stage.getChildByName("REtimberNum").text = timber;
+				stage.getChildByName("REtimberNum").text = player.bank.timber + " (+" + player.bank.timberRate + ")";
 			}
 			
 			//stone text
 			if(stage.getChildByName("REstoneNum") == null)
 			{
-				var REstoneNum = new createjs.Text(stone, "bold 14px Arial", "black");
+				var REstoneNum = new createjs.Text(player.bank.stone + " (+" + player.bank.stoneRate + ")", "bold 14px Arial", "black");
 				REstoneNum.x = 235;
 				REstoneNum.y = 3;
 				REstoneNum.name = "REstoneNum";
@@ -107,27 +132,27 @@
 			}
 			else
 			{
-				stage.getChildByName("REstoneNum").text = stone;
+				stage.getChildByName("REstoneNum").text = player.bank.stone + " (+" + player.bank.stoneRate + ")";
 			}
 			
 			//farm counter text
 			if(stage.getChildByName("REfarmNum") == null)
 			{
-				var REfarmNum = new createjs.Text(farms, "bold 14px Arial", "black");
-				REfarmNum.x = 35;
+				var REfarmNum = new createjs.Text(player.numFarms, "bold 14px Arial", "black");
+				REfarmNum.x = 31;
 				REfarmNum.y = 24;
 				REfarmNum.name = "REfarmNum";
 				stage.addChild(REfarmNum);
 			}
 			else
 			{
-				stage.getChildByName("REfarmNum").text = farms;
+				stage.getChildByName("REfarmNum").text = player.numFarms;
 			}
 			
 			//villager counter text
 			if(stage.getChildByName("REvillagerNum") == null)
 			{
-				var REvillagerNum = new createjs.Text(villagers, "bold 14px Arial", "black");
+				var REvillagerNum = new createjs.Text(player.numVillagers, "bold 14px Arial", "black");
 				REvillagerNum.x = 130;
 				REvillagerNum.y = 24;
 				REvillagerNum.name = "REvillagerNum";
@@ -135,13 +160,13 @@
 			}
 			else
 			{
-				stage.getChildByName("REvillagerNum").text = villagers;
+				stage.getChildByName("REvillagerNum").text = player.numVillagers;
 			}
 			
-			//stone text
+			//warrior text
 			if(stage.getChildByName("REwarriorNum") == null)
 			{
-				var REwarriorNum = new createjs.Text(warriors, "bold 14px Arial", "black");
+				var REwarriorNum = new createjs.Text(player.numWarriors, "bold 14px Arial", "black");
 				REwarriorNum.x = 235;
 				REwarriorNum.y = 24;
 				REwarriorNum.name = "REwarriorNum";
@@ -149,12 +174,15 @@
 			}
 			else
 			{
-				stage.getChildByName("REwarriorNum").text = warriors;
+				stage.getChildByName("REwarriorNum").text = player.numWarriors;
 			}
 			
 			stage.update();
 		}
 		
+		
+		/*----------------------------------------------------------*/
+		/*-------------------display functions----------------------*/
 		function displayResourceElement()
 		{
 			//resource element 
@@ -182,14 +210,24 @@
 			mapElement.src = "http://students.cse.tamu.edu/tjb33/assets/maps/survivorIsland3.png";
 		}
 		
-		function displayEndTurnElement()
+		function displayEndTurnElement(color)
 		{
 			//end turn element
+			if(stage.getChildByName("ETsquare") == null)
+			{
+				stage.removeChild(stage.getChildByName("ETsquare"));
+			}
+			
 			var ETsquare = new createjs.Shape();
-			ETsquare.graphics.beginFill("lightBlue").drawRect(0, 0, 100, 43);
+			ETsquare.graphics.beginFill(color).drawRect(0, 0, 100, 43);
 			ETsquare.x = 740;
 			ETsquare.y = 0;
 			ETsquare.name = "ETsquare";
+			
+			ETsquare.on("click", handleETEMouseEvent);
+			ETsquare.on("mouseover", handleETEMouseEvent);
+			ETsquare.on("mouseout", handleETEMouseEvent);
+			
 			stage.addChild(ETsquare);
 			
 			//end turn text
@@ -217,12 +255,15 @@
 			updateTurnNum();
 		}
 		
+		/*----------------------------------------------------------*/
+		/*-------------------init function--------------------------*/
 		function init()
 		{
 			
 			//graphics stage set-up
 			stage = new createjs.Stage("demoCanvas");
 			stage.autoClear = true;
+			stage.enableMouseOver();
 			 
 			displayResourceElement();
 			
@@ -230,14 +271,36 @@
 			
 			displayMapElement();
 			
-			displayEndTurnElement();
+			displayEndTurnElement("salmon");
 			
 			displayTurnCounterElement();
 			
 			stage.update();
 		}
 		
-		function handleMapMouseEvent(evt) {
+		/*--------------------------------------------------------------*/
+		/*-------------------mouse event functions----------------------*/
+		function handleETEMouseEvent(evt)
+		{
+			if(evt.type == "click")
+			{
+				infoText = "Turn Ended"
+				updateInfoText();
+			}
+			if(evt.type == "mouseover")
+			{
+				displayEndTurnElement("red");
+				stage.update();
+			}
+			if(evt.type == "mouseout")
+			{
+				displayEndTurnElement("salmon");
+				stage.update();
+			}
+		}
+		
+		function handleMapMouseEvent(evt) 
+		{
 			//output.text = "evt.target: "+evt.target+", evt.type: "+evt.type;
 			
 			if(evt.type == "click")
@@ -247,10 +310,14 @@
 				var row = Math.floor(y/24);
 				var column = Math.floor(x/24);
 				infoText = "Tile:(" + row + "," + column + ")";
+				
+				updateInfoText();
 			}
-			updateInfoText();
 			//stage.update();
 		}
+		
+		/*-------------------------------------------------------------*/
+		/*-------------------image load functions----------------------*/
 		
 		function handleRELoad()
 		{
@@ -280,6 +347,7 @@
 			stage.update();
 		}
 		
+		/*----------------------------------------------------------*/
 	</script>
 	
 	<p id="testOutput"></p>
