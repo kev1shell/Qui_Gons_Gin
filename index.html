@@ -3,7 +3,7 @@
 <style src="css/UIclasses.css"></style>
 <head>
 	<title>VillageWars</title>
-	<script src="lib/easeljs-0.7.1.min.js"></script>
+	<script src="http://code.createjs.com/easeljs-0.7.1.min.js"></script>
 	<script>
 		var food = 0;
 		var timber = 0;
@@ -30,18 +30,20 @@
 		function updateTurnNum()
 		{	
 			
-			if(stage.getChildByName("IEtext") == null)
+			if(stage.getChildByName("TCtext") == null)
 			{
-				var IEtext = new createjs.Text(infoText, "bold 14px Arial", "black");
-				IEtext.x = 340;
-				IEtext.y = 13;
-				IEtext.name = "IEtext";
-				stage.addChild(IEtext);
+				var TCtext = new createjs.Text(turnNum, "bold 14px Arial", "black");
+				TCtext.x = 704;
+				TCtext.y = 20;
+				TCtext.name = "TCtext";
+				stage.addChild(TCtext);
 			}
 			else
 			{
-				stage.getChildByName("IEtext").text = infoText;
+				stage.getChildByName("TCtext").text = turnNum;
 			}
+			
+			stage.update();
 			
 		}
 		
@@ -153,18 +155,16 @@
 			stage.update();
 		}
 		
-		function init()
+		function displayResourceElement()
 		{
-			
-			//graphics stage set-up
-			stage = new createjs.Stage("demoCanvas");
-			stage.autoClear = true;
-			 
 			//resource element 
 			resourceElement = new Image();
 			resourceElement.onload = handleRELoad;
-			resourceElement.src = "assets/sprites/ui/ResourceElement.png";
-			
+			resourceElement.src = "http://students.cse.tamu.edu/tjb33/assets/sprites/ui/ResourceElement.png";
+		}
+		
+		function displayInfoElement()
+		{
 			//info element
 			var IEsquare = new createjs.Shape();
 			IEsquare.graphics.beginStroke("Black").drawRect(0, 0, 350, 43);
@@ -172,42 +172,67 @@
 			IEsquare.y = 0;
 			stage.addChild(IEsquare);
 			updateInfoText();
-			
+		}
+		
+		function displayMapElement()
+		{
 			//map element
 			mapElement = new Image();
 			mapElement.onload = handleMapLoad;
-			mapElement.src = "assets/maps/survivorIsland3.png";
-			
+			mapElement.src = "http://students.cse.tamu.edu/tjb33/assets/maps/survivorIsland3.png";
+		}
+		
+		function displayEndTurnElement()
+		{
 			//end turn element
 			var ETsquare = new createjs.Shape();
-			ETsquare.graphics.beginFill("yellow").drawRect(0, 0, 100, 50);
+			ETsquare.graphics.beginFill("lightBlue").drawRect(0, 0, 100, 43);
 			ETsquare.x = 740;
-			ETsquare.y = 487;
+			ETsquare.y = 0;
+			ETsquare.name = "ETsquare";
 			stage.addChild(ETsquare);
 			
 			//end turn text
 			var ETtext = new createjs.Text("End Turn", "bold 20px Arial", "black");
 			ETtext.x = 745;
-			ETtext.y = 500;
+			ETtext.y = 10;
 			stage.addChild(ETtext);
-			
+		}
+		
+		function displayTurnCounterElement()
+		{
 			//turn counter
 			var TCsquare = new createjs.Shape();
-			TCsquare.graphics.beginFill("black").drawRect(0, 0, 40, 50);
-			stage.update();
-			TCsquare.x = ETsquare.x - 40;
-			TCsquare.y = 487;
+			TCsquare.graphics.beginFill("lightGreen").drawRect(0, 0, 40, 43);
+			TCsquare.x = stage.getChildByName("ETsquare").x - 40;
+			TCsquare.y = 0;
 			stage.addChild(TCsquare);
 			
-			//turn counter text
-			var TCtital = new createjs.Text("Turn", "bold 14px Arial", "white");
-			var TCnum = new createjs.Text(turnNum, "bold 14px Arial", "white");
-			TCtital.x = 705;
-			TCtital.y = 490;
-			TCnum.x = 710;
-			TCnum.y = 510;
+			//turn counter tital
+			var TCtital = new createjs.Text("Turn", "bold 14px Arial", "black");
+			TCtital.x = 704;
+			TCtital.y = 5;
 			stage.addChild(TCtital);
-			stage.addChild(TCnum);
+			
+			updateTurnNum();
+		}
+		
+		function init()
+		{
+			
+			//graphics stage set-up
+			stage = new createjs.Stage("demoCanvas");
+			stage.autoClear = true;
+			 
+			displayResourceElement();
+			
+			displayInfoElement();
+			
+			displayMapElement();
+			
+			displayEndTurnElement();
+			
+			displayTurnCounterElement();
 			
 			stage.update();
 		}
