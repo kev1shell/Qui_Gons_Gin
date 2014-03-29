@@ -131,6 +131,7 @@ var Bank = function()
 //Player object
 var Player = function()
 {
+	this.id = Math.floor(Math.random()*1000000000);
 	this.name = "n/a";
 	this.color = "n/a";
 	this.bank = new Bank();
