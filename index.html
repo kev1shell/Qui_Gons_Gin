@@ -5,22 +5,238 @@
 	<title>VillageWars</title>
 	<script src="http://code.createjs.com/easeljs-0.7.1.min.js"></script>
 	<script src = "javascript/objects.js">
-		//objects (their like classes) (I think)
+		//objects (they're like classes) (I think)
+	</script>
+	<script src = "javascript/maps.js">
+		//maps (they're like maps) (I think)
 	</script>
 	<script>
 		/*-------------------global variables----------------------*/
-		var player = Player;
 		
+		//player variable which is used quite a lot
+		//by any function that needs player data
+		var player = new Player();			
+		
+		//player's color set to blue here for test purposes
+		player.color = "blue";
+		
+		//2D array of tile objects representing the
+		//current state of the game "board"
+		var map = loadSurvivorIslandMap();
+		
+		//String variable used to easily change the
+		//text of the info box title
+		//updateInfoText must be called when this is changed
 		var infoText = "hello";
 		
+		//variable representing the current turn
 		var turnNum = 0;
 		
+		//array of stage objects corresponding to
+		//the blue boxes displayed for unit movement
+		var movementSquares = [];
+		
+		//this is essentially a pointer to an object
+		//that is currently "selected"
+		//it could be a unit, structure, or tile.
+		var selectedObject = null;
+		
+		//this is essentially a pointer to a unit
+		//that is currently "selected"
+		var selectedUnit = null;
+		
+		//Easeljs graphics objects. stage is used
+		//and passed around extensively to draw stuff
 		var canvas, stage;
+		
+		//image objects for the UI element. we might
+		//be to make these local to the functions that
+		//need them later.
 		var mapElement, bitmap;
 		var resourceElement, bitmap2;
 		
 		/*---------------------------------------------------------*/
+		/*-------------------general functions----------------------*/
+		
+		//removes movementSquares from the movementSquares array and the stage
+		function removeMovementSquares()
+		{
+			while(movementSquares.length > 0)
+			{
+				stage.removeChild(movementSquares[0]);
+				movementSquares.splice(0,1);
+			}
+		}
+		
+		//returns true if object is a unit, false otherwise
+		function isUnit(object)
+		{
+			if(object.type != null)
+			{
+				if(object.type == "villager" || object.type == "warrior")
+				{
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
+		//Whenever a unit is moved this function should be called
+		function moveSelectedUnit(row,column)
+		{
+			selectedUnit.move(stage, map, row, column);
+			selectedUnit.displayInfo(stage);
+			displaySelectBox(row,column);
+			removeMovementSquares();
+		}
+		
+		//handles the nity gritty of unit movement
+		function unitHandler(row,column)
+		{
+			if(selectedUnit.row != row || selectedUnit.column != column)
+			{
+				var distance = getDistance(row, column, selectedUnit.row, selectedUnit.column);
+				if(distance < 2 && selectedUnit.movementPoints > 0 && selectedUnit.color == player.color)
+				{
+					var tile = map[row][column];
+					if(tile.type != "water" && tile.type != "mountains")
+					{
+						moveSelectedUnit(row,column);
+						
+						if(selectedUnit.movementPoints > 0)
+						{
+							displayMovementSquares(selectedUnit.row,selectedUnit.column);
+						}
+						else
+						{
+							removeMovementSquares();
+							stage.update();
+						}
+					}
+				}
+				else
+				{
+					deSelectAll();
+				}
+			}
+		}
+		
+		//returns the distance between two tiles.
+		function getDistance(row1,column1,row2,column2)
+		{
+			var drow = row1 - row2;
+			var dcolumn = column1 - column2;
+			var distance = Math.sqrt(drow*drow + dcolumn*dcolumn);
+			
+			return distance
+		}
+		
+		//this is mainly a place holder
+		function newTurn()
+		{
+			//deSelect units
+			deSelectAll();
+			
+			//refresh movement points
+			for(var i = 0; i < player.units.length;i++)
+			{
+				player.units[i].movementPoints = player.units[i].maxMovementPoints;
+			}
+			
+			//update resources
+			player.bank.food += player.bank.foodRate;
+			if(player.bank.food < 0)
+			{
+				//PLAYER IS STARVING!!
+				player.bank.food = 0;
+			}
+			player.bank.timber += player.bank.timberRate;
+			player.bank.stone += player.bank.stoneRate;
+			
+			updateResources();
+			
+			//increment turn counter
+			turnNum++;
+			updateTurnNum();
+			
+			//do some other shit maybe
+			
+		}
+		
+		//removes all selection and movement graphics
+		//and resets all selection pointers to null
+		function deSelectAll()
+		{
+			selectedObject = null;
+			selectedUnit = null;
+			
+			stage.removeChild(stage.getChildByName("infoLine1"));
+			stage.removeChild(stage.getChildByName("selectSquare"));
+			
+			removeMovementSquares();
+			
+			infoText = "";
+			updateInfoText();
+			
+			stage.update();
+		}
+		
+		//selects an object if any, at the specified location
+		//if successful, the 'selectedObject' pointer will
+		//point to the newly selected object. if that object is
+		//a unit, 'selectedUnit' will also point to it.
+		function selectObject(row,column)
+		{
+			var tile = map[row][column];
+			
+			if(tile.stack.length == 0)
+			{
+				//no objects in the stack
+				//display tile type
+				infoText = tile.type;
+				updateInfoText();
+			}
+			else if(tile.stack.length == 1)
+			{
+				//only one object is in the tile's stack
+				//Select this object
+				selectedObject = tile.stack[0];
+				displaySelectBox(row,column);
+				selectedObject.displayInfo(stage);
+				
+				if(isUnit(tile.stack[0]) == true)
+				{
+					//the only object in the stack is a unit
+					
+					//select unit
+					selectedUnit = tile.stack[0];
+					
+					if(selectedUnit.movementPoints > 0 && selectedUnit.color == player.color)
+					{
+						displayMovementSquares(row,column);
+					}
+					
+				}
+				else
+				{
+					//the only object in the stack is not a unit
+					//the object must be a structure
+					selectedUnit = null;
+
+				}
+			}
+			else
+			{
+				//select stack
+				selectedObject = tile;
+			}
+		}
+		
+		/*---------------------------------------------------------*/
 		/*-------------------update functions----------------------*/
+		
+		//updates turn counter
 		function updateTurnNum()
 		{	
 			
@@ -41,9 +257,10 @@
 			
 		}
 		
+		//updates info text
 		function updateInfoText()
-		{
-			//info text
+		{			
+			//info title
 			if(stage.getChildByName("IEtext") == null)
 			{
 				var IEtext = new createjs.Text(infoText, "bold 14px Arial", "black");
@@ -60,6 +277,7 @@
 			stage.update();
 		}
 		
+		//updates resource text
 		function updateResources()
 		{
 			//food text
@@ -183,6 +401,53 @@
 		
 		/*----------------------------------------------------------*/
 		/*-------------------display functions----------------------*/
+		
+		//displays movement squares around the specified tile.
+		//only displays squares on tiles that can be moved to.
+		function displayMovementSquares(row,column)
+		{
+			
+			for(var r = row-1; r < row+2; r++)
+			{
+				for(var c = column-1; c < column+2; c++) //lol "c++"
+				{
+					var tile = map[r][c];
+					if(tile.type != "mountains" && tile.type != "water" && (r != row || c != column))
+					{
+						var movementSquare = new createjs.Shape();
+						movementSquare.graphics.beginStroke("blue").drawRect(0, 0, 24, 24);
+						movementSquare.x = 24*c;
+						movementSquare.y = 50 + 24*r;
+						movementSquare.name = "movementSquare"+movementSquares.length;
+						stage.addChild(movementSquare);
+						movementSquares.push(movementSquare);
+					}
+				}
+			}
+			stage.update();
+		}
+		
+		//Displays selection box
+		function displaySelectBox(row,column)
+		{
+			if(stage.getChildByName("selectSquare") != null)
+			{
+				stage.getChildByName("selectSquare").x = 24*column;
+				stage.getChildByName("selectSquare").y = 50 + 24*row;
+			}
+			else
+			{
+				var selectSquare = new createjs.Shape();
+				selectSquare.graphics.beginStroke("Black").drawRect(0, 0, 24, 24);
+				selectSquare.x = 24*column;
+				selectSquare.y = 50 + 24*row;
+				selectSquare.name = "selectSquare";
+				stage.addChild(selectSquare);
+			}
+			stage.update();
+		}
+		
+		//displays resource element image
 		function displayResourceElement()
 		{
 			//resource element 
@@ -191,6 +456,7 @@
 			resourceElement.src = "http://students.cse.tamu.edu/tjb33/assets/sprites/ui/ResourceElement.png";
 		}
 		
+		//displays info box square
 		function displayInfoElement()
 		{
 			//info element
@@ -202,6 +468,7 @@
 			updateInfoText();
 		}
 		
+		//displays map image
 		function displayMapElement()
 		{
 			//map element
@@ -210,6 +477,7 @@
 			mapElement.src = "http://students.cse.tamu.edu/tjb33/assets/maps/survivorIsland3.png";
 		}
 		
+		//displays end turn button with the specified color
 		function displayEndTurnElement(color)
 		{
 			//end turn element
@@ -237,6 +505,7 @@
 			stage.addChild(ETtext);
 		}
 		
+		//displays turn counter stuff
 		function displayTurnCounterElement()
 		{
 			//turn counter
@@ -257,6 +526,8 @@
 		
 		/*----------------------------------------------------------*/
 		/*-------------------init function--------------------------*/
+		
+		//everything starts here
 		function init()
 		{
 			
@@ -280,12 +551,15 @@
 		
 		/*--------------------------------------------------------------*/
 		/*-------------------mouse event functions----------------------*/
+		
+		//handles End turn mouse events
 		function handleETEMouseEvent(evt)
 		{
 			if(evt.type == "click")
 			{
-				infoText = "Turn Ended"
+				infoText = "Turn Ended";
 				updateInfoText();
+				newTurn();
 			}
 			if(evt.type == "mouseover")
 			{
@@ -299,6 +573,7 @@
 			}
 		}
 		
+		//handles map mouse events.
 		function handleMapMouseEvent(evt) 
 		{
 			//output.text = "evt.target: "+evt.target+", evt.type: "+evt.type;
@@ -307,18 +582,47 @@
 			{
 				var x = evt.stageX - evt.target.x;
 				var y = evt.stageY - evt.target.y;
+				
 				var row = Math.floor(y/24);
 				var column = Math.floor(x/24);
-				infoText = "Tile:(" + row + "," + column + ")";
 				
-				updateInfoText();
+				//infoText = "Tile:(" + row + "," + column + ")";
+				//updateInfoText();
+				
+				if(selectedObject == null)
+				{
+					//nothing is selected
+					//select object
+					selectObject(row,column);
+				}
+				else
+				{
+					//something is selected
+					if(isUnit(selectedObject) == true)
+					{
+						//if selectedObject is a unit
+						unitHandler(row,column);
+					}
+					else
+					{
+						//if selectedObject is not a unit
+						if(selectedObject.row != row || selectedObject.column != column)
+						{
+							//if selectedObject is not at (row, column)
+							deSelectAll();
+						}
+					}
+				}
+				
 			}
+			
 			//stage.update();
 		}
 		
 		/*-------------------------------------------------------------*/
 		/*-------------------image load functions----------------------*/
 		
+		//loads the resource element image
 		function handleRELoad()
 		{
 			bitmap2 = new createjs.Bitmap(resourceElement);
@@ -329,6 +633,7 @@
 			stage.update();
 		}
 		
+		//loads the map image
 		function handleMapLoad()
 		{
 			bitmap = new createjs.Bitmap(mapElement);
