@@ -4,21 +4,28 @@
 <head>
 	<title>VillageWars</title>
 	<script src="http://code.createjs.com/easeljs-0.7.1.min.js"></script>
-	<script src = "javascript/objects.js">
+	<script src = "https://googledrive.com/host/0B0t-xySeqXPfSE9femd5M1llR3c">
 		//objects (they're like classes) (I think)
 	</script>
-	<script src = "javascript/maps.js">
+	<script src = "http://googledrive.com/host/0B0t-xySeqXPfYVBpZHU5dHNOQ3M">
 		//maps (they're like maps) (I think)
 	</script>
+	<script src = "/socket.io/socket.io.js"></script>
 	<script>
 		/*-------------------global variables----------------------*/
+		
+		var socket = io.connect('http://' + document.location.host);
+
 		
 		//player variable which is used quite a lot
 		//by any function that needs player data
 		var player = new Player();			
 		
+		var players = [player];
+		
 		//player's color set to blue here for test purposes
 		player.color = "blue";
+		player.onTurn = false;
 		
 		//2D array of tile objects representing the
 		//current state of the game "board"
@@ -58,7 +65,133 @@
 		/*---------------------------------------------------------*/
 		/*-------------------general functions----------------------*/
 		
+		function tileContainsEnemy(row, column)
+		{
+			var tile = map[row][column];
+			if(tile.stack.length > 0)
+			{
+				if(tile.stack[i].color != player.color)
+				{
+					return true; 
+				}
+			}
+			return false;
+		}
+		
+		function getEnemyAt(row,column)
+		{
+			var tile = map[row][column];
+			if(tile.stack.length > 0)
+			{
+				for(var i = 0; i < tile.stack.length; i++)
+				{
+					var object = tile.stack[i];
+					if(i == tile.stack.length-1 && object.color != player.color)
+					{
+						return object;
+					}
+					else
+					{
+						if(isUnit(object) && object.color != player.color)
+						{
+							return object;
+						} 
+					}
+				}
+			}
+			return null;
+		}
+		
+		function combaty(attackingUnit, defendingUnit)
+		{
+			while( attackingUnit.health > 0 && defendingUnit.health > 0)
+			{
+				defendingUnit.health -= attackingUnit.attack - defendingUnit.defense;
+				if(defendingUnit.health > 0)
+				{
+					attackingUnit.health -= defendingUnit.attack - attackingUnit.defense;
+				}	
+			}
+			if(defendingUnit.health > 0)
+			{
+				return defendingUnit;
+			}
+			else
+			{
+				return attackingUnit;
+			}
+		}
+		
+		function combat(unitA, unitB)
+		{ 
+			//-----Combat-specific helper functions-----
+			function removeMax(dice){ //removes and returns the max value from the array
+				dice.sort();
+				dice.reverse();
+				return dice.splice(0,1);
+			}
+		
+			function rollDice(){ 
+				return Math.floor((Math.random()*6)+1);
+			}
+
+			//-----Local variables-----
+			var redAttack = unitA.attack;
+			var blueDefense = unitB.defense;
+			
+			var RedsDice = [];
+			var BluesDice = [];
+			var numComparisons = Math.min(redAttack, blueDefense);
+
+			//-----Combat calculations-----
+			while (true){
+				for (var i=0;i<redAttack;i++){
+					RedsDice[i] = rollDice();
+					//RedsDice[i] = flipCoin();
+				}
+				for (var i=0;i<blueDefense;i++){
+					BluesDice[i] = rollDice();
+					//BluesDice[i] = flipCoin();
+				}
+				
+				//alert("RedsDice = ["+RedsDice+"] BluesDice = ["+BluesDice+"]");
+				
+				for (var i=0; i<numComparisons; i++){//compare one die from each set until no pairs are left
+					var RedMax = removeMax(RedsDice);
+					var BlueMax = removeMax(BluesDice);
+					if ((RedMax <= 3 && RedMax >= BlueMax) || (RedMax > 3 && RedMax > BlueMax)) // 'fair chance' method
+					//if (RedMax > BlueMax) // 'defender's advantage' method
+					//if (RedMax == 2) //for use with flipCoin()
+						unitB.health--;
+					else
+						unitA.health--;
+					
+					if (unitA.health == 0){ //If Red is defeated...
+						//return "Blue";
+						//unitA.remove();
+						return unitB;
+					}
+					if (unitB.health == 0){ //If Blue is defeated...
+						//return "Red";
+						//unitB.remove();
+						return unitA;
+					}	
+				} 
+			}
+		} //end of Combat() function
+		
 		//removes movementSquares from the movementSquares array and the stage
+		function killRandomUnit()
+		{
+			var index = Math.floor(Math.random()*player.units.length);
+			var unit = player.units[index];
+			
+			unit.remove();
+			var messageArray = ["remove", unit.id,unit.row,unit.column];
+			updater(messageArray);
+			alert("Your villages starving! you have lost a "+unit.type+"!");
+		}
+		
 		function removeMovementSquares()
 		{
 			while(movementSquares.length > 0)
@@ -83,35 +216,98 @@
 		}
 		
 		//Whenever a unit is moved this function should be called
+		function moveUnit(unit,row,column)
+		{
+			var oldRow = unit.row;
+			var oldColumn = unit.column;
+			unit.move(stage, map, row, column);
+			//send the move to other clients
+			var messageArray = ["move",unit.id,unit.row,unit.column,oldRow,oldColumn];
+			updater(messageArray);
+		}
+		
 		function moveSelectedUnit(row,column)
 		{
-			selectedUnit.move(stage, map, row, column);
-			selectedUnit.displayInfo(stage);
+			//selectedUnit.move(stage, map, row, column);
+			moveUnit(selectedUnit,row,column);
+			selectedUnit.displayInfo(stage, player);
 			displaySelectBox(row,column);
 			removeMovementSquares();
 		}
 		
 		//handles the nity gritty of unit movement
+		var flag = 0;
 		function unitHandler(row,column)
 		{
+			flag = 1;
 			if(selectedUnit.row != row || selectedUnit.column != column)
 			{
 				var distance = getDistance(row, column, selectedUnit.row, selectedUnit.column);
-				if(distance < 2 && selectedUnit.movementPoints > 0 && selectedUnit.color == player.color)
+				if(distance < 2 && selectedUnit.movementPoints > 0 && selectedUnit.color == player.color && player.onTurn == true)
 				{
 					var tile = map[row][column];
 					if(tile.type != "water" && tile.type != "mountains")
 					{
-						moveSelectedUnit(row,column);
+						var enemyObject = getEnemyAt(row,column);
 						
-						if(selectedUnit.movementPoints > 0)
+						if(enemyObject == null)
 						{
-							displayMovementSquares(selectedUnit.row,selectedUnit.column);
+							//no worries here
+							moveSelectedUnit(row,column);
+						
+							if(selectedUnit.movementPoints > 0)
+							{
+								displayMovementSquares(selectedUnit.row,selectedUnit.column);
+							}
+							else
+							{
+								removeMovementSquares();
+								stage.update();
+							}
 						}
 						else
 						{
-							removeMovementSquares();
-							stage.update();
+							//Enemy sighted!
+							
+							
+							if(selectedUnit.type == "warrior")
+							{
+								//its fight'n time!
+								
+								while(enemyObject != null && selectedUnit != null)
+								{
+									if(isUnit(enemyObject) == true)
+									{
+										var survivor = combaty(selectedUnit, enemyObject);
+										if(survivor.id == selectedUnit.id)
+										{
+											enemyObject.remove();
+											var messageArray = ["remove", enemyObject.id,enemyObject.row,enemyObject.column];
+											updater(messageArray);
+										}
+										else
+										{
+											selectedUnit.remove();
+											var messageArray = ["remove", selectedUnit.id,selectedUnit.row,selectedUnit.column];
+											updater(messageArray);
+											deSelectAll();
+										}
+									}
+									else
+									{
+										enemyObject.remove();
+										var messageArray = ["remove", enemyObject.id,enemyObject.row,enemyObject.column];
+										updater(messageArray);
+									}
+									enemyObject = getEnemyAt(row,column);
+								}
+								//enemyObject.remove();
+								moveSelectedUnit(row,column);
+								selectedUnit.movementPoints = 0;
+								removeMovementSquares();
+								stage.update();
+							}
+							
 						}
 					}
 				}
@@ -132,11 +328,22 @@
 			return distance
 		}
 		
+		function endTurn()
+		{
+			
+			deSelectAll();
+			player.onTurn = false;
+			infoText = "Turn Ended, Waiting for other players...";
+			updateInfoText();
+			
+		}
+		
 		//this is mainly a place holder
-		function newTurn()
+		function startTurn()
 		{
 			//deSelect units
 			deSelectAll();
+			player.onTurn = true;
 			
 			//refresh movement points
 			for(var i = 0; i < player.units.length;i++)
@@ -146,10 +353,12 @@
 			
 			//update resources
 			player.bank.food += player.bank.foodRate;
-			if(player.bank.food < 0)
+			if(player.bank.food <= 0)
 			{
 				//PLAYER IS STARVING!!
 				player.bank.food = 0;
+				
+				killRandomUnit();
 			}
 			player.bank.timber += player.bank.timberRate;
 			player.bank.stone += player.bank.stoneRate;
@@ -172,7 +381,18 @@
 			selectedUnit = null;
 			
 			stage.removeChild(stage.getChildByName("infoLine1"));
+			stage.removeChild(stage.getChildByName("infoLine2"));
+			stage.removeChild(stage.getChildByName("infoLine3"));
+			stage.removeChild(stage.getChildByName("infoLine4"));
 			stage.removeChild(stage.getChildByName("selectSquare"));
+			stage.removeChild(stage.getChildByName("BFtext"));
+			stage.removeChild(stage.getChildByName("BuildFarmButton"));
+			stage.removeChild(stage.getChildByName("BVtext"));
+			stage.removeChild(stage.getChildByName("BuildVillageButton"));
+			stage.removeChild(stage.getChildByName("buildVillagertext"));
+			stage.removeChild(stage.getChildByName("BuildVillagerButton"));
+			stage.removeChild(stage.getChildByName("buildWarriortext"));
+			stage.removeChild(stage.getChildByName("BuildWarriorButton"));
 			
 			removeMovementSquares();
 			
@@ -203,7 +423,7 @@
 				//Select this object
 				selectedObject = tile.stack[0];
 				displaySelectBox(row,column);
-				selectedObject.displayInfo(stage);
+				selectedObject.displayInfo(stage, player);
 				
 				if(isUnit(tile.stack[0]) == true)
 				{
@@ -212,7 +432,7 @@
 					//select unit
 					selectedUnit = tile.stack[0];
 					
-					if(selectedUnit.movementPoints > 0 && selectedUnit.color == player.color)
+					if(selectedUnit.movementPoints > 0 && selectedUnit.color == player.color && player.onTurn == true)
 					{
 						displayMovementSquares(row,column);
 					}
@@ -228,8 +448,25 @@
 			}
 			else
 			{
-				//select stack
-				selectedObject = tile;
+				//select first unit on stack
+				for(var i=0;i<tile.stack.length;i++)
+				{
+					if(isUnit(tile.stack[i]) == true)
+					{
+						selectedObject = tile.stack[i];
+						selectedUnit = tile.stack[i];
+						displaySelectBox(row,column);
+						selectedObject.displayInfo(stage, player);
+						
+						if(selectedUnit.movementPoints > 0 && selectedUnit.color == player.color)
+						{
+							displayMovementSquares(row,column);
+						}
+						
+						i = tile.stack.length;
+					}
+				}
+				//selectedObject = tile;
 			}
 		}
 		
@@ -412,10 +649,18 @@
 				for(var c = column-1; c < column+2; c++) //lol "c++"
 				{
 					var tile = map[r][c];
+					var enemyObject = getEnemyAt(r,c);
 					if(tile.type != "mountains" && tile.type != "water" && (r != row || c != column))
 					{
 						var movementSquare = new createjs.Shape();
-						movementSquare.graphics.beginStroke("blue").drawRect(0, 0, 24, 24);
+						if(enemyObject == null)
+						{
+							movementSquare.graphics.beginStroke("blue").drawRect(0, 0, 24, 24);
+						}
+						else
+						{
+							movementSquare.graphics.beginStroke("red").drawRect(0, 0, 24, 24);
+						}
 						movementSquare.x = 24*c;
 						movementSquare.y = 50 + 24*r;
 						movementSquare.name = "movementSquare"+movementSquares.length;
@@ -481,9 +726,10 @@
 		function displayEndTurnElement(color)
 		{
 			//end turn element
-			if(stage.getChildByName("ETsquare") == null)
+			if(stage.getChildByName("ETsquare") != null)
 			{
 				stage.removeChild(stage.getChildByName("ETsquare"));
+				stage.removeChild(stage.getChildByName("ETtext"));
 			}
 			
 			var ETsquare = new createjs.Shape();
@@ -502,6 +748,7 @@
 			var ETtext = new createjs.Text("End Turn", "bold 20px Arial", "black");
 			ETtext.x = 745;
 			ETtext.y = 10;
+			ETtext.name = "ETtext";
 			stage.addChild(ETtext);
 		}
 		
@@ -559,7 +806,10 @@
 			{
 				infoText = "Turn Ended";
 				updateInfoText();
-				newTurn();
+				//startTurn();
+				endTurn();
+				var messageArray = ["endTurn", player.color];
+				updater(messageArray);
 			}
 			if(evt.type == "mouseover")
 			{
@@ -640,19 +890,237 @@
 			bitmap.x = 0;
 			bitmap.y = 50;
 			
-			var mapBackgroud = new createjs.Shape();
-			mapBackgroud.graphics.beginFill("white").drawRect(0, 0, 840, 432);
-			mapBackgroud.x = bitmap.x;
-			mapBackgroud.y = bitmap.y;
-			mapBackgroud.on("click", handleMapMouseEvent);
+			var mapBackground = new createjs.Shape();
+			mapBackground.graphics.beginFill("white").drawRect(0, 0, 840, 432);
+			mapBackground.x = bitmap.x;
+			mapBackground.y = bitmap.y;
+			mapBackground.name = "mapBackground";
+			mapBackground.on("click", handleMapMouseEvent);
 			
-			stage.addChild(mapBackgroud);
+			stage.addChild(mapBackground);
 			stage.addChild(bitmap);
 			
 			stage.update();
 		}
 		
 		/*----------------------------------------------------------*/
+	
+		function updater(Array)
+		{
+			socket.emit('updater',Array);
+		}
+
+		function reciever(message)
+		{
+			//alert(message);
+			var input = message;
+			//alert(Passer);
+			
+			if(input[0] == "login")
+			{
+				onLoginCommand(input);
+			}
+			else if(input[0] == "move")
+			{
+				moveCommand(input);
+			}
+			else if(input[0] == "createUnit")
+			{
+				createUnitCommand(input);
+			}
+			else if(input[0] == "createStructure")
+			{
+				createStructureCommand(input);
+			}
+			else if(input[0] == "remove")
+			{
+				removeObjectCommand(input);
+			}
+			else if(input[0] == "endTurn")
+			{
+				endTurnCommand(input);
+			}
+		}
+		
+		function endTurnCommand(input)
+		{
+			//message format: ["endTurn",pastPlayerColor]
+			var color = input[1];
+			if(color == "blue")
+			{
+				if(player.color == "red")
+				{
+					startTurn();
+				}
+			}
+			else if(color == "red")
+			{
+				if(player.color == "blue")
+				{
+					startTurn();
+				}
+			}
+		}
+		
+		function removeObjectCommand(input)
+		{
+			//message format: ["remove", object.id, object.row, object.column]
+			var objectID = input[1];
+			var row = input[2];
+			var column = input[3];
+			
+			var tile = map[row][column];
+			//find object
+			for(var i=0;i<tile.stack.length;i++)
+			{
+				if(tile.stack[i].id == objectID)
+				{
+					//remove object
+					tile.stack[i].remove();
+				}
+			}
+		}
+		
+		function createStructureCommand(input)
+		{
+			//message format: ["createStructure","farm",player.id,structure.id,structure.row,structure.column];
+			var structureType = input[1];
+			var playerID = input[2];
+			var structureID = input[3];
+			var row = input[4];
+			var column = input [5];
+			
+			//find player:
+			for(var i=0;i<players.length;i++)
+			{
+				if(players[i].id == playerID)
+				{
+					//create the structure
+					players[i].createStructure(stage,map,structureType,row,column);
+					players[i].structures[players[i].structures.length-1].id = structureID;
+				}
+			}
+			
+		}
+		
+		function onLoginCommand(input)
+		{
+			//alert('someone has logged in');
+			//message format: ["login",player.id,player.color,player.name];
+			var newPlayer = new Player();
+			newPlayer.id = input[1];
+			newPlayer.color = input[2];
+			newPlayer.name = input[3];
+			
+			//make sure new player is not in players array:
+			for(var i=0;i<players.length;i++)
+			{
+				if(players[i].id == newPlayer.id)
+				{
+					return;
+				}
+			}
+			players.push(newPlayer);
+			
+			//Echo back this player's data:
+			messageArray = ["login",player.id,player.color,player.name];
+			updater(messageArray);
+			
+			//Echo back all this player's units
+			for(var i=0;i<player.units.length;i++)
+			{
+				var unit = player.units[i];
+				messageArray = ["createUnit",unit.type,player.id,unit.id,unit.row,unit.column];
+				updater(messageArray);
+			}
+		}
+		
+		function createUnitCommand(input)
+		{
+			//message format: ["createUnit",unit.type,player.id,unit.id,row,column];
+			
+			unitType = input[1];
+			playerID = input[2];
+			unitID = input[3];
+			unitRow = input[4];
+			unitColumn = input[5];
+			
+			//find player:
+			for(var i=0;i<players.length;i++)
+			{
+				if(players[i].id == playerID)
+				{
+					//create the unit
+					players[i].createUnit(stage,map,unitType,unitRow,unitColumn);
+					players[i].units[players[i].units.length-1].id = unitID;
+				}
+			}
+		}
+		
+		function moveCommand(input)
+		{
+			var unitID = input[1];
+			newRow = input[2];
+			newColumn = input[3];
+			row = input[4];
+			column = input[5];
+			
+			//get unit at row column
+			var tile = map[row][column];
+			var unit = null;
+			for(var i=0;i<tile.stack.length;i++)
+			{
+				if(tile.stack[i].id == unitID)
+				{
+					unit = tile.stack[i];
+					i = tile.stack.length;
+				}
+			}
+			if(unit != null)
+			{
+				unit.move(stage,map,newRow,newColumn);
+			}
+		}
+		
+		function login(message)
+		{
+			if(message == 1)
+			{
+				//this is player 1 (blue)
+				player.color = "blue";
+				player.onTurn = true;
+				player.createUnit(stage,map,"villager",5,4);
+				
+				//sendLogin data:
+				messageArray = ["login",player.id,player.color,player.name];
+				updater(messageArray);
+				
+				//send new unit data:
+				//messageArray = ["createUnit","villager",player.id,5,4];
+				//updater(messageArray);
+			}
+			else if(message == 2)
+			{
+				//this is player 2 (red)
+				player.color = "red";
+				player.createUnit(stage,map,"villager",5,33);
+				
+				//sendLogin data:
+				messageArray = ["login",player.id,player.color,player.name];
+				updater(messageArray);
+			}
+		}
+		
+		socket.on('update',reciever);
+		
+		socket.on('ExternalLogin',function(message)
+		{
+			//alert('someone has joined the game!');
+		}
+		);
+		
+		socket.on('welcome',login);
+		
 	</script>
 	
 	<p id="testOutput"></p>
