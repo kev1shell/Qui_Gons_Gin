@@ -4,7 +4,7 @@
 <head>
 	<title>VillageWars</title>
 	<script src="http://code.createjs.com/easeljs-0.7.1.min.js"></script>
-	<script src = "https://googledrive.com/host/0B0t-xySeqXPfSE9femd5M1llR3c">
+	<script src = "https://googledrive.com/host/0B0t-xySeqXPfc1I3T2tqc2xSYTA">
 		//objects (they're like classes) (I think)
 	</script>
 	<script src = "http://googledrive.com/host/0B0t-xySeqXPfYVBpZHU5dHNOQ3M">
@@ -218,6 +218,12 @@
 		//Whenever a unit is moved this function should be called
 		function moveUnit(unit,row,column)
 		{
+			
+			if(unit == null)
+			{
+				return;
+			}
+			
 			var oldRow = unit.row;
 			var oldColumn = unit.column;
 			unit.move(stage, map, row, column);
@@ -349,7 +355,7 @@
 			for(var j=0;j<players.length;j++)
 			{
 				var playa = players[j];
-				for(var i = 0; i < player.units.length;i++)
+				for(var i = 0; i < playa.units.length;i++)
 				{
 					playa.units[i].movementPoints = playa.units[i].maxMovementPoints;
 				}
