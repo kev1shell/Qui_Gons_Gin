@@ -43,7 +43,6 @@ io.sockets.on(
     // Send a welcome message first.
 	numClients++;
     client.emit('welcome', numClients);
-	client.broadcast.emit('ExternalLogin', 'login');
 
     // Listen to an event called 'login'. The client should emit this event when
     // it wants to log in to the chat room.
@@ -58,7 +57,8 @@ io.sockets.on(
           client.emit('login_ok');
           // client.broadcast.emits() will send to all clients except the
           // current client. See socket.io FAQ for more examples.
-          client.broadcast.emit('notification', 'login');
+          client.broadcast.emit('notification',
+                                message.user_name + ' entered the room.');
           return
         }
         // When something is wrong, send a login_failed message to the client.
@@ -87,14 +87,16 @@ io.sockets.on(
       });
 
     // Print a message when somebody left.
-	  client.on(
-      'disconnect',
-      function() {
-        numClients--;
-      });
-	
  	  client.on('updater',function(message){
 			client.broadcast.emit('update', message);
 		});
+		
+		// Print a message when somebody left.
+		client.on(
+		  'disconnect',
+		  function()
+		  {
+			numClients--;
+		  });
   });
 

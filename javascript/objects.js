@@ -152,20 +152,20 @@ var Unit = function()
 			var oldTile = map[this.row][this.column];
 			var newTile = map[newRow][newColumn];
 			
-			if(oldTile.type == "forest")
+			if(oldTile.type == "forest" && this.owner.id==player.id)
 			{
 				player.bank.timberRate -= timberCollectionRate;
 			}
-			else if(oldTile.type == "stone")
+			else if(oldTile.type == "stone" && this.owner.id==player.id)
 			{
 				player.bank.stoneRate -= stoneCollectionRate;
 			}
 			
-			if(newTile.type == "forest")
+			if(newTile.type == "forest" && this.owner.id==player.id)
 			{
 				player.bank.timberRate += timberCollectionRate;
 			}
-			else if(newTile.type == "stone")
+			else if(newTile.type == "stone" && this.owner.id==player.id)
 			{
 				player.bank.stoneRate += stoneCollectionRate;
 			}
