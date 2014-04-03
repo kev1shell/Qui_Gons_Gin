@@ -106,23 +106,30 @@ var Unit = function()
 		}
 		
 		//update player data
-		player.bank.foodRate += this.foodUpKeep;
-		if(this.type == "villager")
+		
+		if(this.owner.id == player.id)
 		{
-			this.owner.numVillagers--;
-			if(tile.type == "forest")
+			this.owner.bank.foodRate += this.foodUpKeep;
+		
+			if(this.type == "villager")
 			{
-				player.bank.timberRate -= timberCollectionRate;
+				this.owner.numVillagers--;
+				if(tile.type == "forest")
+				{
+					this.owner.bank.timberRate -= timberCollectionRate;
+				}
+				else if(tile.type == "stone")
+				{
+					this.owner.bank.stoneRate -= stoneCollectionRate;
+				}
 			}
-			else if(tile.type == "stone")
+			else if(this.type == "warrior")
 			{
-				player.bank.stoneRate -= stoneCollectionRate;
+				this.owner.numWarriors--;
 			}
 		}
-		else if(this.type == "warrior")
-		{
-			this.owner.numWarriors--;
-		}
+		
+		
 		
 		//remove the unit's shape from the canvas
 		stage.removeChild(this.shape);
