@@ -289,15 +289,47 @@
 										var survivor = combaty(selectedUnit, enemyObject);
 										if(survivor.id == selectedUnit.id)
 										{
+											//remove enemy object
 											enemyObject.remove();
+											
+											//remove this object from all clients
 											var messageArray = ["remove", enemyObject.id,enemyObject.row,enemyObject.column];
+											updater(messageArray);
+											
+											/*
+											message format:
+											{"updateUnit",row,column,unit.id,unit.movementPoints,
+											unit.maxMovementPoints,unit.health,unit.maxHealth,unit.attack,unit.defense}
+											*/
+											
+											//update surviving unit's stats on all clients
+											messageArray = 
+											["updateUnit",selectedUnit.row,selectedUnit.column,selectedUnit.id,
+											selectedUnit.movementPoints,selectedUnit.maxMovementPoints,
+											selectedUnit.health,selectedUnit.maxHealth,selectedUnit.attack,
+											selectedUnit.defense];
+											
 											updater(messageArray);
 										}
 										else
 										{
+											//remove selected unit
 											selectedUnit.remove();
+											
+											//remove selected unit from all clients
 											var messageArray = ["remove", selectedUnit.id,selectedUnit.row,selectedUnit.column];
 											updater(messageArray);
+											
+											//update surviving unit's stats on all clients
+											messageArray = 
+											["updateUnit",selectedUnit.row,selectedUnit.column,selectedUnit.id,
+											selectedUnit.movementPoints,selectedUnit.maxMovementPoints,
+											selectedUnit.health,selectedUnit.maxHealth,selectedUnit.attack,
+											selectedUnit.defense];
+											
+											updater(messageArray);
+											
+											//deselected all
 											deSelectAll();
 										}
 									}
@@ -968,6 +1000,50 @@
 			else if(input[0] == "endTurn")
 			{
 				endTurnCommand(input);
+			}
+			else if(input[0] == "updateUnit")
+			{
+				updateUnitCommand(input);
+			}
+		}
+		
+		function updateUnitCommand(input)
+		{
+			/*
+			message format:
+			{"updateUnit",row,column,unit.id,unit.movementPoints,
+			unit.maxMovementPoints,unit.health,unit.maxHealth,unit.attack,unit.defense}
+			*/
+			
+			//set up stat vars
+			var unit = null;
+			var row = input[1];
+			var column = input[2];
+			var unitID = input[3];
+			var unitMP = input[4];
+			var unitMaxMP = input[5];
+			var unitHealth = input[6];
+			var unitMaxHealth = input[7];
+			var unitAttack = input[8];
+			var unitDefense = input[9];
+			
+			//find unit
+			var tile = map[row][column];
+			
+			for(var i=0;i<tile.stack.length;i++)
+			{
+				if(tile.stack[i].id == unitID)
+				{
+					unit = tile.stack[i];
+					//update unit stats
+					unit.movementPoints = unitMP;
+					unit.maxMovementPoints = unitMaxMP;
+					unit.health = unitHealth;
+					unit.maxHealth = unitMaxHealth;
+					unit.attack = unitAttack;
+					unit.defense = unitDefense;
+					break;
+				}
 			}
 		}
 		
