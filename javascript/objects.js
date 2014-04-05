@@ -1,35 +1,38 @@
 
-//objects (they're like classes) (I think)
+// !!THIS FILE IS NO LONGER USED!!
 
+//objects (they're like classes) (I think) Bazinga!
+
+/*
 //Unit/Structure costs"
-villagerFoodCost = 4;
-villagerTimberCost = 0;
-villagerStoneCost = 0;
-villagerFoodUpKeep = 2;
+var villagerFoodCost = 4;
+var villagerTimberCost = 0;
+var villagerStoneCost = 0;
+var villagerFoodUpKeep = 2;
 
-warriorFoodCost = 4;
-warriorTimberCost = 2;
-warriorStoneCost = 1;
-warriorFoodUpKeep = 4;
+var warriorFoodCost = 4;
+var warriorTimberCost = 2;
+var warriorStoneCost = 1;
+var warriorFoodUpKeep = 4;
 
-farmFoodCost = 0;
-farmTimberCost = 2;
-farmStoneCost = 0;
+var farmFoodCost = 0;
+var farmTimberCost = 2;
+var farmStoneCost = 0;
 
-villageFoodCost = 0;
-villageTimberCost = 8;
-villageStoneCost = 4;
+var villageFoodCost = 0;
+var villageTimberCost = 8;
+var villageStoneCost = 4;
 
 //base unit stats
-villagerMaxMovementPoints = 4;
-villagerMaxHealth = 1;
-villagerDefense = 0;
-villagerAttack = 0;
+var villagerMaxMovementPoints = 4;
+var villagerMaxHealth = 1;
+var villagerDefense = 0;
+var villagerAttack = 0;
 
-warriorMaxMovementPoints = 2;
-warriorMaxHealth = 10;
-warriorDefense = 2;
-warriorAttack = 5;
+var warriorMaxMovementPoints = 2;
+var warriorMaxHealth = 10;
+var warriorDefense = 2;
+var warriorAttack = 5;
 
 //Resource Gathering Rates:
 var farmCollectionRate = 4;
@@ -41,6 +44,8 @@ var maxVillages = 3;
 
 //error string
 var error = "";
+
+*/
 
 //test class
 var Animal = function()
@@ -56,14 +61,17 @@ var Animal = function()
 }
 
 //Tile object
+/* 
 var Tile = function()
 {
 	this.type = "n/a";
 	this.stack = [];
 	
-}
+} 
+*/
 
 //Unit object
+/*
 var Unit = function()
 {
 	this.id = Math.floor(Math.random()*1000000000);
@@ -252,9 +260,11 @@ var Unit = function()
 		
 	}
 
-}
+} 
+*/
 
 //Structure object
+/*
 var Structure = function()
 {
 	this.id = Math.floor(Math.random()*1000000000);
@@ -323,10 +333,10 @@ var Structure = function()
 		stage.update()
 		
 	}
-}
+} */
 
 //Bank object
-var Bank = function()
+/* var Bank = function()
 {
 	this.food = 10 + villageFoodCost + villagerFoodCost;
 	this.timber = villageTimberCost + villagerTimberCost;
@@ -334,10 +344,10 @@ var Bank = function()
 	this.foodRate = 0;
 	this.timberRate = 0;
 	this.stoneRate = 0;
-}
+} */
 
 //Player object
-var Player = function()
+/* var Player = function()
 {
 	this.id = Math.floor(Math.random()*1000000000);
 	this.name = "n/a";
@@ -554,7 +564,7 @@ var Player = function()
 		updateResources();
 		map[row][column].stack.push(villager);
 	}
-}
+} */
 
 //Game object
 var Game = function()
@@ -566,7 +576,7 @@ this.nurnNum = 0;
 
 //button functions
 
-function displayBuildWarriorButton(stage, color)
+/* function displayBuildWarriorButton(stage, color)
 {
 	if(stage.getChildByName("BuildWarriorButton") != null)
 	{
@@ -818,8 +828,8 @@ function handleBFMouseEvent(evt)
 	}
 	
 }
-
-function canBuild(object)
+ */
+/* function canBuild(object)
 {
 	
 	if(object == "villager")
@@ -935,4 +945,4 @@ function getStructureAt(row, column)
 		}
 	}
 	return null;
-}
+} */
