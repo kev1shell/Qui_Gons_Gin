@@ -1,6 +1,169 @@
 
 // General Functions
 
+//called by one client and FORCES all other clients to start the game.
+//Only ONE client should call this function.
+
+function organizeChildren()
+{
+	var children = [];
+	var result = [];
+	var units = [];
+	var structures = [];
+	var other = [];
+	var selectionObjects = [];
+	
+	children = stage.children;
+	
+	//remove all
+	//stage.removeAllChildren();
+	
+	//add everything that is not a unit, structure, or selection object
+	for(var i=0;i<children.length;i++)
+	{
+		var name = children[i].name;
+		
+		if(name == null || typeof(name) == "undefined")
+		{
+			other.push(children[i]);
+			continue;
+		}
+		
+		if(name.indexOf("villager") != 0 && name.indexOf("warrior") != 0)
+		{
+			if(name.indexOf("farm") != 0 && name.indexOf("village") != 0)
+			{
+				if(name.indexOf("movementSquare") == -1 && name.indexOf("selectSquare") == -1)
+				{
+					other.push(children[i]);
+					continue;
+				}
+			}
+		}
+	}
+	
+	//add structures
+	for(var i=0;i<children.length;i++)
+	{
+		var name = children[i].name;
+		
+		if(name == null || typeof(name) == "undefined")
+		{
+			continue;
+		}
+		
+		if((name.indexOf("village") == 0 || name.indexOf("farm") == 0) && name.indexOf("villager") == -1)
+		{
+			structures.push(children[i]);
+		}
+	}
+	
+	//add units
+	for(var i=0;i<children.length;i++)
+	{
+		var name = children[i].name;
+		
+		if(name == null || typeof(name) == "undefined")
+		{
+			continue;
+		}
+		
+		if(name.indexOf("villager") == 0 || name.indexOf("warrior") == 0)
+		{
+			units.push(children[i]);
+		}
+	}
+	
+	//add selection objects if they exist
+	for(var i=0;i<children.length;i++)
+	{
+		var name = children[i].name;
+		
+		if(name == null || typeof(name) == "undefined")
+		{
+			continue;
+		}
+		
+		if(name.indexOf("movementSquare") == 0 || name.indexOf("selectSquare") == 0)
+		{
+			selectionObjects.push(children[i]);
+		}
+	}
+	
+	for(var i=0;i<other.length;i++)
+	{
+		result.push(other[i]);
+	}
+	
+	for(var i=0;i<structures.length;i++)
+	{
+		result.push(structures[i]);
+	}
+	
+	for(var i=0;i<units.length;i++)
+	{
+		result.push(units[i]);
+	}
+	
+	for(var i=0;i<selectionObjects.length;i++)
+	{
+		result.push(selectionObjects[i]);
+	}
+	
+	stage.children = result;
+	//reset stage children
+	//for(var i=0;i<stage.children.length;i++){stage.children[i] = result[i];}
+	
+	//update the stage
+	stage.update();
+}
+
+function startGame()
+{
+	//remove all children from stage
+	stage.removeAllChildren();
+	
+	//tell other clients to start the game
+	messageArray = ["startGame"];
+	updater(messageArray);
+	
+	displayGameScreen();
+	
+}
+
+//called by each client when a match starts
+function joinGame()
+{
+	if(player.color == "blue")
+	{
+		player.onTurn = true;
+		player.createUnit(stage,map,"villager",5,4);
+		
+		//send the new villager to all clients
+		var unit = player.units[0];
+		messageArray = ["createUnit",unit.type,player.id,unit.id,unit.row,unit.column];
+		updater(messageArray);
+		
+		//update info text
+		infoText = "Begin your turn";
+		updateInfoText();
+	}
+	else if(player.color == "red")
+	{
+		player.onTurn = false;
+		player.createUnit(stage,map,"villager",6,33);
+		
+		//send the new villager to all clients
+		var unit = player.units[0];
+		messageArray = ["createUnit",unit.type,player.id,unit.id,unit.row,unit.column];
+		updater(messageArray);
+		
+		//update info text
+		infoText = "Waiting for other players...";
+		updateInfoText();
+	}
+}
+
 function canBuild(object)
 {
 	
@@ -418,6 +581,7 @@ function getDistance(row1,column1,row2,column2)
 	return distance
 }
 
+//called when a player ends a turn
 function endTurn()
 {
 	
@@ -430,7 +594,7 @@ function endTurn()
 	
 }
 
-//this is mainly a place holder
+//called when a player begins a turn.
 function startTurn()
 {
 	//deSelect units

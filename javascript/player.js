@@ -24,6 +24,9 @@ var Player = function()
 		{
 			createWarrior(stage, map, this, row, column);
 		}
+		
+		//organize children
+		organizeChildren();
 	}
 	
 	function createStructure(stage, map, structureType, row, column)
@@ -36,6 +39,7 @@ var Player = function()
 		{
 			createVillage(stage, map, this, row, column);
 		}
+		//organize children
 	}
 	
 	function createVillage(stage, map, player, row, column)
@@ -63,7 +67,8 @@ var Player = function()
 								village.shape.y = 50 + 24*village.row;
 								village.shape.name = "village"+village.id;
 								stage.addChild(village.shape);
-								
+								organizeChildren();
+								organizeChildren();
 								stage.update();
 							}
 		
@@ -102,7 +107,7 @@ var Player = function()
 								farm.shape.y = 50 + 24*farm.row;
 								farm.shape.name = "farm"+farm.id;
 								stage.addChild(farm.shape);
-								
+								organizeChildren();
 								stage.update();
 							}
 		
@@ -152,7 +157,7 @@ var Player = function()
 								warrior.shape.y = 54 + 24*warrior.row;
 								warrior.shape.name = "warrior"+warrior.id;
 								stage.addChild(warrior.shape);
-								
+								organizeChildren();
 								stage.update();
 							}
 		
@@ -202,7 +207,7 @@ var Player = function()
 								villager.shape.y = 54 + 24*villager.row;
 								villager.shape.name = "villager"+villager.id;
 								stage.addChild(villager.shape);
-								
+								organizeChildren();
 								stage.update();
 							}
 		

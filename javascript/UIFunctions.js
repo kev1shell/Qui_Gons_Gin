@@ -14,7 +14,7 @@ function updateTurnNum()
 	}
 	
 	var TCtext = new createjs.Text(turnNum, "bold 14px Arial", "black");
-	TCtext.x = 704;
+	TCtext.x = stage.getChildByName("TCtital").x + 1;
 	TCtext.y = 20;
 	TCtext.name = "TCtext";
 	stage.addChild(TCtext);
@@ -46,6 +46,15 @@ function updateInfoText()
 //updates resource text
 function updateResources()
 {
+	stage.removeChild(stage.getChildByName("REfoodNum"));
+	stage.removeChild(stage.getChildByName("REfoodRate"));
+	stage.removeChild(stage.getChildByName("REtimberNum"));
+	stage.removeChild(stage.getChildByName("REstoneNum"));
+	stage.removeChild(stage.getChildByName("REfarmNum"));
+	stage.removeChild(stage.getChildByName("REvillagerNum"));
+	stage.removeChild(stage.getChildByName("REwarriorNum"));
+	
+	
 	//food text
 	if(stage.getChildByName("REfoodNum") == null)
 	{
@@ -164,6 +173,118 @@ function updateResources()
 	stage.update();
 }
 
+/*----------------------------------------------------------*/
+/*-------------------display screen----------------------*/
+function displayGameScreen()
+{
+	displayResourceElement();
+			
+	displayInfoElement();
+	
+	displayMapElement();
+	
+	joinGame();
+	
+	if(player.onTurn == true)
+	{
+		displayEndTurnElement("salmon");
+		
+		displayTurnCounterElement("lightGreen");
+	}
+	else
+	{
+		displayEndTurnElement("lightSlateGrey");
+	
+		displayTurnCounterElement("salmon");
+	}
+	
+	stage.update();
+}
+
+function displayDemoHelpScreen()
+{
+	//clear all existing children from the stage
+	stage.removeAllChildren();
+	
+	//plain background
+	var background = new createjs.Shape();
+	background.graphics.beginFill("DarkSlateGray").drawRect(0, 0, stage.canvas.width, stage.canvas.height);
+	background.x = 0;
+	background.y = 0;
+	background.name = "background";
+	stage.addChild(background);
+	
+	//some text
+	var titalText = new createjs.Text("Help", "bold 72px Arial", "black");
+	titalText.x = 200;
+	titalText.y = 30;
+	titalText.name = "titalText";
+	stage.addChild(titalText);
+	
+	//back button
+	var backButton = new Button("backButton",338,170,175,50); //constructor: (name,x,y,width,height)
+	backButton.text = "Back";//the text on the button
+	backButton.mouseOutColor = "yellow";
+	backButton.mouseInColor = "gold";
+	backButton.mouseDownColor = "orange";
+	backButton.onClick = displayDemoMainMenu;//function that the button calls when clicked.
+	backButton.draw();
+	
+	//update stage
+	stage.update();
+}
+
+function displayDemoMainMenu()
+{
+	//clear all existing children from the stage
+	stage.removeAllChildren();
+	
+	//some text
+	var titalText = new createjs.Text("Village Wars", "bold 72px Arial", "black");
+	titalText.x = 200;
+	titalText.y = 30;
+	titalText.name = "titalText";
+	
+	//start game button
+	var StartGameButton = new Button("StartGameButton",338,170,175,50); //constructor: (name,x,y,width,height)
+	StartGameButton.text = "Start Game";//the text on the button
+	StartGameButton.mouseOutColor = "yellow";
+	StartGameButton.mouseInColor = "gold";
+	StartGameButton.mouseDownColor = "orange";
+	StartGameButton.onClick = startGame;//function that the button calls when clicked.
+	
+	//help button
+	var helpButton = new Button("helpButton",338,230,175,50); //constructor: (name,x,y,width,height)
+	helpButton.text = "help";//the text on the button
+	helpButton.mouseOutColor = "yellow";
+	helpButton.mouseInColor = "gold";
+	helpButton.mouseDownColor = "orange";
+	helpButton.onClick = displayDemoHelpScreen;//function that the button calls when clicked.
+	
+	//background image
+	var backgroundImage = new Image();
+	backgroundImage.src = "http://students.cse.tamu.edu/tjb33/assets/maps/survivorIsland3.png"
+	
+	backgroundImage.onload = function()
+							{
+								var backgroundShape = new createjs.Bitmap(this);
+								backgroundShape.x = 0;
+								backgroundShape.y = 0;
+								backgroundShape.name = "demoMainBackground";
+								
+								/*If you're using a background image,
+								add your text and draw the buttons here.
+								Be sure to list them in the order you wish
+								them to be drawn on the canvas!*/
+								stage.addChild(backgroundShape);
+								stage.addChild(titalText);
+								StartGameButton.draw();
+								helpButton.draw();
+								
+								stage.update();
+							}
+	
+}
 
 /*----------------------------------------------------------*/
 /*-------------------display functions----------------------*/
@@ -262,7 +383,7 @@ function displayEndTurnElement(color)
 	}
 	
 	var ETsquare = new createjs.Shape();
-	ETsquare.graphics.beginFill(color).drawRect(0, 0, 100, 43);
+	ETsquare.graphics.beginFill(color).drawRoundRect(0, 0, 100, 43,10);
 	ETsquare.x = 740;
 	ETsquare.y = 0;
 	ETsquare.name = "ETsquare";
@@ -270,6 +391,9 @@ function displayEndTurnElement(color)
 	ETsquare.on("click", handleETEMouseEvent);
 	ETsquare.on("mouseover", handleETEMouseEvent);
 	ETsquare.on("mouseout", handleETEMouseEvent);
+	ETsquare.on("mousedown", handleETEMouseEvent);
+	ETsquare.on("mouseup", handleETEMouseEvent);
+	ETsquare.on("pressup", handleETEMouseEvent);
 	
 	stage.addChild(ETsquare);
 	
@@ -292,15 +416,15 @@ function displayTurnCounterElement(color)
 	
 	//turn counter
 	var TCsquare = new createjs.Shape();
-	TCsquare.graphics.beginFill(color).drawRect(0, 0, 40, 43);
-	TCsquare.x = stage.getChildByName("ETsquare").x - 40;
+	TCsquare.graphics.beginFill(color).drawRoundRect(0, 0, 42, 43, 10);
+	TCsquare.x = stage.getChildByName("ETsquare").x - 45;
 	TCsquare.y = 0;
 	TCsquare.name = "TCsquare";
 	stage.addChild(TCsquare);
 	
 	//turn counter tital
 	var TCtital = new createjs.Text("Turn", "bold 14px Arial", "black");
-	TCtital.x = 704;
+	TCtital.x = stage.getChildByName("TCsquare").x + 5;
 	TCtital.y = 5;
 	TCtital.name = "TCtital";
 	stage.addChild(TCtital);
@@ -314,8 +438,12 @@ function displayTurnCounterElement(color)
 //handles End turn mouse events
 function handleETEMouseEvent(evt)
 {
-	if(evt.type == "click" && player.onTurn == true)
+	
+	if(evt.type == "click" || evt.type == "mouseup" || evt.type == "pressup" && player.onTurn == true)
 	{
+		displayEndTurnElement("red");
+		stage.update();
+		
 		infoText = "Turn Ended";
 		updateInfoText();
 		
@@ -332,6 +460,12 @@ function handleETEMouseEvent(evt)
 	if(evt.type == "mouseout" && player.onTurn == true)
 	{
 		displayEndTurnElement("salmon");
+		stage.update();
+	}
+	if(evt.type == "mousedown" && player.onTurn == true)
+	{
+		
+		displayEndTurnElement("darkRed");
 		stage.update();
 	}
 }

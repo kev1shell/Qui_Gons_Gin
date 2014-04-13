@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html>
 <style src="css/UIclasses.css"></style>
-<style>h1{color:black;}</style>
 <head>
 	<title>VillageWars</title>
-	<h1 id="colorRibbon">Loading...</h1>
 	<!-- Easeljs graphics package-->
 	<script src="http://code.createjs.com/easeljs-0.7.1.min.js"></script>
 	
@@ -15,31 +13,34 @@
 	<script src = "http://googledrive.com/host/0B0t-xySeqXPfYVBpZHU5dHNOQ3M"></script>
 	
 	<!-- objectGlobals -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfMTZ1b2JJcEx2ZW8"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfNDZVUG9fNzduTGs"></script>
 	
 	<!-- Tile class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfX3lIV2JEMkJfUm8"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfMEVMd2xNM3hjckE"></script>
 	
 	<!-- Unit class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfOGtiWWhxSWV1b0U"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfR1dxSU9WN1E4WFk"></script>
 	
 	<!-- Structure class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfRlMzUDJTRkgzZ0U"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfM2dWRkpqMklRZkU"></script>
 	
 	<!-- Bank class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfOHhzUUNTRlhVa28"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfTXN0VjdocGR1RGM"></script>
 	
 	<!-- Player class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfMDdmNkw2bHJaTUU"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfNEU4Y0xfMjk4azg"></script>
+	
+	<!-- Button class -->
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfTGIzU2phOU5ZTnM"></script>
 	
 	<!-- message handlers -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfY1pMUWtaMEdmRW8"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfNTRqYm1WODFtUnc"></script>
 	
 	<!-- general functions -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfTFJENllZSnR6dDA"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfSHBMbE52aXBoMnM"></script>
 	
 	<!-- UI functions -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfZEc4dFROckk1dG8"></script>
+	<script src="https://googledrive.com/host/0B0t-xySeqXPfX3JrcTRVZnFzSU0"></script>
 	
 	<script>
 		/*-------------------global client variables----------------------*/
@@ -104,18 +105,10 @@
 			stage = new createjs.Stage("demoCanvas");
 			stage.autoClear = true;
 			stage.enableMouseOver();
-			 
-			displayResourceElement();
+
+			displayDemoMainMenu();
 			
-			displayInfoElement();
-			
-			displayMapElement();
-			
-			displayEndTurnElement("lightSlateGrey");
-			
-			displayTurnCounterElement("salmon");
-			
-			stage.update();
+			//displayGameScreen();
 		}
 	
 		function updater(Array)
@@ -125,9 +118,8 @@
 
 		function reciever(message)
 		{
-			//alert(message);
+		
 			var input = message;
-			//alert(Passer);
 			
 			if(input[0] == "login")
 			{
@@ -135,9 +127,7 @@
 			}
 			else if(input[0] == "move")
 			{
-				//alert('move');
 				moveCommand(input);
-				
 			}
 			else if(input[0] == "createUnit")
 			{
@@ -159,6 +149,10 @@
 			{
 				updateUnitCommand(input);
 			}
+			else if(input[0] == "startGame")
+			{
+				startGameCommand(input);
+			}
 		}
 		
 		function login(message)
@@ -168,14 +162,6 @@
 			{			
 				//this is player 1 (blue)
 				player.color = "blue";
-				player.onTurn = true;
-				displayEndTurnElement("salmon");
-				displayTurnCounterElement("lightGreen");
-				player.createUnit(stage,map,"villager",5,4);
-				
-				//update color ribbon:
-				document.getElementById("colorRibbon").style.color = player.color;
-				document.getElementById("colorRibbon").innerHTML = player.color+" player";
 				
 				//sendLogin data:
 				messageArray = ["login",player.id,player.color,player.name];
@@ -186,15 +172,6 @@
 			{
 				//this is player 2 (red)
 				player.color = "red";
-				player.createUnit(stage,map,"villager",5,33);
-				
-				//update info text
-				infoText = "Waiting for other players...";
-				updateInfoText();
-				
-				//update color ribbon:
-				document.getElementById("colorRibbon").style.color = player.color;
-				document.getElementById("colorRibbon").innerHTML = player.color+" player";
 				
 				//sendLogin data:
 				messageArray = ["login",player.id,player.color,player.name];
@@ -207,13 +184,6 @@
 				//update info text
 				infoText = "spectating";
 				updateInfoText();
-				
-				//update color ribbon:
-				document.getElementById("colorRibbon").innerHTML = "Spectating";
-				
-				//sendLogin data:
-				messageArray = ["login",player.id,player.color,player.name];
-				updater(messageArray);
 			}
 		}
 		
