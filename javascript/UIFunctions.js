@@ -175,6 +175,7 @@ function updateResources()
 
 /*----------------------------------------------------------*/
 /*-------------------display screen----------------------*/
+//this function displays the main game screen (with map, Resources, ect.)
 function displayGameScreen()
 {
 	
@@ -202,6 +203,7 @@ function displayGameScreen()
 	stage.update();
 }
 
+//This function is a demo health screen, not included in FPII
 function displayDemoHelpScreen()
 {
 	//clear all existing children from the stage
@@ -235,6 +237,7 @@ function displayDemoHelpScreen()
 	stage.update();
 }
 
+//This function displayes the main menu and is the first menu the user sees.
 function displayDemoMainMenu()
 {
 	//clear all existing children from the stage
@@ -249,17 +252,17 @@ function displayDemoMainMenu()
 	//start game button
 	var StartGameButton = new Button("StartGameButton",338,170,175,50); //constructor: (name,x,y,width,height)
 	StartGameButton.text = "Start Game";//the text on the button
-	StartGameButton.mouseOutColor = "yellow";
-	StartGameButton.mouseInColor = "gold";
-	StartGameButton.mouseDownColor = "orange";
+	//StartGameButton.mouseOutColor = "yellow";
+	//StartGameButton.mouseInColor = "gold";
+	//StartGameButton.mouseDownColor = "orange";
 	StartGameButton.onClick = startGame;//function that the button calls when clicked.
 	
 	//help button
 	var helpButton = new Button("helpButton",338,230,175,50); //constructor: (name,x,y,width,height)
 	helpButton.text = "help";//the text on the button
-	helpButton.mouseOutColor = "yellow";
-	helpButton.mouseInColor = "gold";
-	helpButton.mouseDownColor = "orange";
+	//helpButton.mouseOutColor = "yellow";
+	//helpButton.mouseInColor = "gold";
+	//helpButton.mouseDownColor = "orange";
 	helpButton.onClick = displayDemoHelpScreen;//function that the button calls when clicked.
 	
 	//background image
@@ -280,7 +283,7 @@ function displayDemoMainMenu()
 								stage.addChild(backgroundShape);
 								stage.addChild(titalText);
 								StartGameButton.draw();
-								helpButton.draw();
+								//helpButton.draw();
 								
 								stage.update();
 							}
@@ -290,6 +293,7 @@ function displayDemoMainMenu()
 /*----------------------------------------------------------*/
 /*-------------------display functions----------------------*/
 
+//displays tool tip showing the cost of an object
 function displayObjectCost(object)
 {
 	
@@ -341,6 +345,8 @@ function displayObjectCost(object)
 	stage.update();
 }
 
+//displays info about a specific object in a stack
+//during stack selection
 function displaySSBInfo(object,row,column)
 {
 	//background
@@ -392,6 +398,7 @@ function displaySSBInfo(object,row,column)
 	stage.update();
 }
 
+//This function handles the Stack Selection Box Button Event (SSBBEvent)
 function handleSSBBEvent(evt)
 {
 	var sourceButton = evt.currentTarget.parentButton;
@@ -425,6 +432,7 @@ function handleSSBBEvent(evt)
 	}
 }
 
+//This function displays the stack selection box
 function displayStackSelectionBox(row,column)
 {
 	var tile = map[row][column];
