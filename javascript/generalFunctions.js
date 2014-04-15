@@ -4,8 +4,6 @@
 //called by one client and FORCES all other clients to start the game.
 //Only ONE client should call this function.
 
-//this function organizes the graphics children into the order
-//we want them to be drawn in.
 function organizeChildren()
 {
 	var children = [];
@@ -120,7 +118,6 @@ function organizeChildren()
 	stage.update();
 }
 
-//This function is called once by one client and starts the game for all clients
 function startGame()
 {
 	//remove all children from stage
@@ -167,7 +164,6 @@ function joinGame()
 	}
 }
 
-//returns true if the player can build this object (unit or structure)
 function canBuild(object)
 {
 	
@@ -272,8 +268,6 @@ function canBuild(object)
 	}
 }
 
-//returns a structure at the given row & column
-//returns null if no structure was found
 function getStructureAt(row, column)
 {
 	var tile = map[row][column];
@@ -288,7 +282,6 @@ function getStructureAt(row, column)
 	return null;
 }
 
-//returns true if the given tile contains an enemy object
 function tileContainsEnemy(row, column)
 {
 	var tile = map[row][column];
@@ -302,8 +295,6 @@ function tileContainsEnemy(row, column)
 	return false;
 }
 
-//returns an enemy in a given tile. returns null
-//if no enemy was found.
 function getEnemyAt(row,column)
 {
 	var tile = map[row][column];
@@ -328,7 +319,6 @@ function getEnemyAt(row,column)
 	return null;
 }
 
-//This function takes in two combatants and returns the survivor.
 function combaty(attackingUnit, defendingUnit)
 {
 	while( attackingUnit.health > 0 && defendingUnit.health > 0)
@@ -349,7 +339,6 @@ function combaty(attackingUnit, defendingUnit)
 	}
 }
 
-//decremented function
 function combat(unitA, unitB)
 { 
 	//-----Combat-specific helper functions-----
@@ -420,7 +409,6 @@ function killRandomUnit()
 	alert("Your villages starving! you have lost a "+unit.type+"!");
 }
 
-//removes movement squares from graphics stage.
 function removeMovementSquares()
 {
 	while(movementSquares.length > 0)
@@ -461,7 +449,6 @@ function moveUnit(unit,row,column)
 	updater(messageArray);
 }
 
-//moves the selected unit to the specified tile.
 function moveSelectedUnit(row,column)
 {
 	//selectedUnit.move(stage, map, row, column);
@@ -471,7 +458,6 @@ function moveSelectedUnit(row,column)
 	removeMovementSquares();
 }
 
-//adds a stack symbol at the specified tile
 function addStackSymbol(row,column)
 {
 	
@@ -490,7 +476,6 @@ function addStackSymbol(row,column)
 							}
 }
 
-//removes a stack symbol from the specified tile.
 function removeStackSymbol(row,column)
 {
 	stage.removeChild(stage.getChildByName("stackSymbol"+row+column));
@@ -546,6 +531,9 @@ function unitHandler(row,column)
 							if(isUnit(enemyObject) == true)
 							{
 								var survivor = combaty(selectedUnit, enemyObject);
+								var fightArray = ["fight", survivor.color];
+								fight(survivor.color);
+								updater(fightArray);
 								if(survivor.id == selectedUnit.id)
 								{
 									//remove enemy object
@@ -691,7 +679,6 @@ function startTurn()
 	
 }
 
-//removes the object cost tool tip
 function removeObjectCost()
 {
 	stage.removeChild(stage.getChildByName("costBackground"));
@@ -700,7 +687,6 @@ function removeObjectCost()
 	stage.update();
 }
 
-//removes the stack selection box
 function removeStackSelectionBox()
 {
 	stage.removeChild(stage.getChildByName("stackSelectionBox"));
@@ -819,3 +805,70 @@ function selectObject(row,column)
 		displayStackSelectionBox(row,column);
 	}
 }
+function fight(color)
+{
+	var backer = new createjs.Shape();
+	backer.graphics.beginFill("DarkSlateGray").drawRect(0, 0, stage.canvas.width, stage.canvas.height-50);
+	backer.x = 0;
+	backer.y = 50;
+	backer.name = "backer";
+	stage.addChild(backer);
+	stage.update();
+        if (color == 'blue'){
+                var ss = new createjs.SpriteSheet({
+                                "animations":
+                                {
+                                        "run": [0, 15,stop]},
+                                        "images": ["http://students.cse.tamu.edu/tjb33/assets/sprites/animate/blueKillRed.png"],
+                                        "frames":
+                                                {
+                                                        "height": 100,
+                                                        "width":150,
+                                                        "regX": 0,
+                                                        "regY": 0,
+                                                        "count": 15
+                                                }
+                                });
+                        var grant = new createjs.Sprite(ss, "run");
+                        grant.x = 360;
+                        grant.y = 150;
+						grant.name = "grant";
+                        // Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
+                        stage.addChild(grant);
+                        createjs.Ticker.setFPS(10);
+                        createjs.Ticker.addEventListener("tick", stage);
+                }
+        
+        else if(color == 'red'){
+                var ss = new createjs.SpriteSheet({
+                                "animations":
+                                {
+                                        "run": [0, 15,stop]},
+                                        "images": ["http://students.cse.tamu.edu/tjb33/assets/sprites/animate/redKillBlue.png"],
+                                        "frames":
+                                                {
+                                                        "height": 100,
+                                                        "width":150,
+                                                        "regX": 0,
+                                                        "regY": 0,
+                                                        "count": 15
+                                                }
+                                });
+                        var grant = new createjs.Sprite(ss, "run");
+                        grant.x = 360;
+                        grant.y = 150;
+						grant.name = "grant";
+
+                        // Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
+                        stage.addChild(grant);
+                        createjs.Ticker.setFPS(10);
+                        createjs.Ticker.addEventListener("tick", stage);
+                }
+		setTimeout(function() {
+			stage.removeChild(stage.getChildByName("grant"));
+			stage.removeChild(stage.getChildByName("backer"));
+			stage.update();
+			}, (1.5 * 1000));		
+		
+        }
+
