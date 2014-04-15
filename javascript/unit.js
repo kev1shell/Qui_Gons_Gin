@@ -37,7 +37,13 @@ var Unit = function()
 			if(tile.stack[i].id == this.id)
 			{
 				tile.stack.splice(i,1);
+				
+				if(map[this.row][this.column].stack.length < 2)
+				{
+					removeStackSymbol(this.row,this.column);
+				}
 			}
+			
 		}
 		
 		//update player data
@@ -87,6 +93,12 @@ var Unit = function()
 					//found unit
 					//remove the unit from the stack
 					map[this.row][this.column].stack.splice(i,1);
+					
+					//check to see if stack is less than 2, if so remove stack symbol
+					if(map[this.row][this.column].stack.length < 2)
+					{
+						removeStackSymbol(this.row,this.column);
+					}
 				}
 			}
 			
@@ -116,6 +128,12 @@ var Unit = function()
 			//add self to new tile's stack
 			map[newRow][newColumn].stack.push(this);
 			
+			//check to see if a new stack has been created:
+			if(map[newRow][newColumn].stack.length == 2)
+			{
+				addStackSymbol(newRow,newColumn);
+				organizeChildren();
+			}
 			
 			this.row = newRow;
 			this.column = newColumn;
@@ -252,6 +270,9 @@ function handleBVMouseEvent(evt)
 	
 	if(evt.type == "click")
 	{
+		removeObjectCost();
+		displayObjectCost("village");
+		
 		if(canBuild("village"))
 		{
 			//build village
@@ -270,11 +291,13 @@ function handleBVMouseEvent(evt)
 	if(evt.type == "mouseover")
 	{
 		displayBuildVillageButton(stage, "blue");
+		displayObjectCost("village");
 		stage.update();
 	}
 	if(evt.type == "mouseout")
 	{
 		displayBuildVillageButton(stage, "lightBlue");
+		removeObjectCost();
 		stage.update();
 	}
 	
@@ -287,6 +310,10 @@ function handleBFMouseEvent(evt)
 	
 	if(evt.type == "click")
 	{
+		
+		removeObjectCost();
+		displayObjectCost("farm");
+		
 		if(canBuild("farm"))
 		{
 			//build farm
@@ -305,11 +332,13 @@ function handleBFMouseEvent(evt)
 	if(evt.type == "mouseover")
 	{
 		displayBuildFarmButton(stage, "blue");
+		displayObjectCost("farm");
 		stage.update();
 	}
 	if(evt.type == "mouseout")
 	{
 		displayBuildFarmButton(stage, "lightBlue");
+		removeObjectCost();
 		stage.update();
 	}
 	

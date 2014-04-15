@@ -177,6 +177,7 @@ function updateResources()
 /*-------------------display screen----------------------*/
 function displayGameScreen()
 {
+	
 	displayResourceElement();
 			
 	displayInfoElement();
@@ -289,6 +290,274 @@ function displayDemoMainMenu()
 /*----------------------------------------------------------*/
 /*-------------------display functions----------------------*/
 
+function displayObjectCost(object)
+{
+	
+	var text = "";
+	var color = "salmon";
+	var xOffset = 0;
+	
+	if(canBuild(object) == true)
+	{
+		color = "lightGreen";
+	}
+	
+	if(object == "village")
+	{
+		text = "Timber: "+villageTimberCost+" Stone: "+villageStoneCost;
+		xOffset = 75;
+		
+	}
+	else if(object == "farm")
+	{
+		text = "Timber: "+farmTimberCost;
+		xOffset = 75;
+	}
+	else if(object == "villager")
+	{
+		text = "Food: "+villagerFoodCost;
+	}
+	else if(object == "warrior")
+	{
+		text = "Food: "+warriorFoodCost+" Timber: "+warriorTimberCost+" Stone: "+warriorStoneCost;
+	}
+	
+	//cost text
+	var costText = new createjs.Text(text, "bold 14px Arial", "black");
+	costText.x = 406+xOffset;
+	costText.y = 35;
+	costText.name = "costText";
+	
+	//background
+	var costBackground = new createjs.Shape();
+	costBackground.graphics.beginFill(color).drawRect(0, 0, costText.getBounds().width+10, 18);
+	costBackground.x = 401+xOffset;
+	costBackground.y = 35;
+	costBackground.name = "costBackground";
+	
+	stage.addChild(costBackground);
+	stage.addChild(costText);
+	
+	stage.update();
+}
+
+function displaySSBInfo(object,row,column)
+{
+	//background
+	var SSBInfoBackground = new createjs.Shape();
+	SSBInfoBackground.graphics.beginFill("LightSlateGray").drawRect(0, 0, 85, 75);
+	SSBInfoBackground.x = 24*(column+1)+46;
+	SSBInfoBackground.y = 50+24*row;
+	SSBInfoBackground.name = "SSBInfoBackground";
+	stage.addChild(SSBInfoBackground);
+	
+	//Object name text
+	var objectName = new createjs.Text(object.type, "bold 14px Arial", "black");
+	objectName.x = 24*(column+1)+52;
+	objectName.y = 52+24*row;
+	objectName.name = "objectName";
+	stage.addChild(objectName);
+	
+	if(isUnit(object))
+	{
+		//line 1
+		var infoLine1 = new createjs.Text("MP: "+object.movementPoints+"/"+object.maxMovementPoints, "bold 9px Arial", "black");
+		infoLine1.x = 24*(column+1)+52;15 + stage.getChildByName("IEtext").x + stage.getChildByName("IEtext").getMeasuredWidth();
+		infoLine1.y = 60+24*row + 10*1;
+		infoLine1.name = "SSBinfoLine1";
+		stage.addChild(infoLine1);
+		
+		//line 2
+		var infoLine2 = new createjs.Text("Health: "+object.health+"/"+object.maxHealth, "bold 9px Arial", "black");
+		infoLine2.x = 24*(column+1)+52;
+		infoLine2.y = 60+24*row + 10*2;
+		infoLine2.name = "SSBinfoLine2";
+		stage.addChild(infoLine2);
+		
+		//line 3
+		var infoLine3 = new createjs.Text("Attack: "+object.attack, "bold 9px Arial", "black");
+		infoLine3.x = 24*(column+1)+52;
+		infoLine3.y = 60+24*row + 10*3;
+		infoLine3.name = "SSBinfoLine3";
+		stage.addChild(infoLine3);
+		
+		//line 4
+		var infoLine4 = new createjs.Text("Defense: "+object.defense, "bold 9px Arial", "black");
+		infoLine4.x = 24*(column+1)+52;
+		infoLine4.y = 60+24*row + 10*4;
+		infoLine4.name = "SSBinfoLine4";
+		stage.addChild(infoLine4);
+	}
+	
+	stage.update();
+}
+
+function handleSSBBEvent(evt)
+{
+	var sourceButton = evt.currentTarget.parentButton;
+		
+	if(evt.type == "pressup")
+	{
+		sourceButton.draw(sourceButton.mouseInColor);
+		
+		//call onClick function
+		sourceButton.onClick();
+	}
+	if(evt.type == "mouseover" && stage.getChildByName(sourceButton.shape.name) != null)
+	{
+		sourceButton.draw(sourceButton.mouseInColor);
+		displaySSBInfo(sourceButton.target,sourceButton.row,sourceButton.column);
+	}
+	if(evt.type == "mouseout" && stage.getChildByName(sourceButton.shape.name) != null)
+	{
+		sourceButton.draw(sourceButton.mouseOutColor);
+		stage.removeChild(stage.getChildByName("SSBInfoBackground"));
+		stage.removeChild(stage.getChildByName("objectName"));
+		stage.removeChild(stage.getChildByName("SSBinfoLine1"));
+		stage.removeChild(stage.getChildByName("SSBinfoLine2"));
+		stage.removeChild(stage.getChildByName("SSBinfoLine3"));
+		stage.removeChild(stage.getChildByName("SSBinfoLine4"));
+		stage.update();
+	}
+	if(evt.type == "mousedown" && stage.getChildByName(sourceButton.shape.name) != null)
+	{
+		sourceButton.draw(sourceButton.mouseDownColor);
+	}
+}
+
+function displayStackSelectionBox(row,column)
+{
+	var tile = map[row][column];
+	var stack = tile.stack;
+	
+	var addMoveButton = 0;
+	var index = 0;
+	//check to see if there's a select square here
+	for(var i=0;i<movementSquares.length;i++)
+	{
+		if(movementSquares[i].row == row && movementSquares[i].column == column)
+		{
+			addMoveButton = 1;
+			
+		}
+	}
+	
+	//background
+	var stackSelectionBox = new createjs.Shape();
+	stackSelectionBox.graphics.beginFill("DarkSlateGray").drawRect(0, 0, 44, 25*(stack.length+addMoveButton));
+	stackSelectionBox.x = 24*(column+1);
+	stackSelectionBox.y = 50+24*row;
+	stackSelectionBox.name = "stackSelectionBox";
+	stage.addChild(stackSelectionBox);
+	
+	for(var i=0;i<stack.length;i++)
+	{
+		//add button
+		var SSBButton = new Button("SSBButton",24*(column+1)+20,52+24*row+24*i,20,20);
+		SSBButton.name = "SSBButton"+i;
+		SSBButton.text = "<";
+		SSBButton.row = row;
+		SSBButton.column = column;
+		SSBButton.target = stack[i];
+		SSBButton.handleButtonEvent = handleSSBBEvent;
+		SSBButton.onClick = function()
+							{	
+								deSelectAll();
+								
+								var tile = map[this.row][this.column]
+								selectedObject = this.target;
+								displaySelectBox(this.row,this.column);
+								selectedObject.displayInfo(stage, player);
+								
+								if(isUnit(this.target) == true)
+								{
+									selectedUnit = this.target;
+									
+									if(selectedUnit.movementPoints > 0 && selectedUnit.color == player.color && player.onTurn == true)
+									{
+										displayMovementSquares(this.row,this.column);
+									}
+								}
+								else
+								{
+									selectedUnit = null;
+								}
+								
+								removeStackSelectionBox();
+								stage.update();
+							}
+		SSBButton.draw();
+		
+		//add image
+		var objectImage = new Image();
+		objectImage.src = stack[i].image.src;
+		objectImage.yOffset = i;
+		objectImage.onload = function()
+							{
+								var SSBImage = new createjs.Bitmap(this);
+								SSBImage.x = 24*(column+1)+2;
+								SSBImage.y = 54 + 24*row+24*this.yOffset;
+								SSBImage.name = "SSBImage";
+								stage.addChild(SSBImage);
+								
+								stage.update();
+							}
+		
+		index++;
+	}
+	
+	if(addMoveButton == 1)
+	{
+		//add move here button
+		var moveHereButton = new Button("moveHereButton",24*(column+1)+20,52+24*row+24*index,20,20);
+		moveHereButton.name = "moveHereButton";
+		moveHereButton.text = "<";
+		moveHereButton.row = row;
+		moveHereButton.column = column;
+		
+		var placeHolder = [];placeHolder.type = "Move Here";
+		
+		moveHereButton.target = placeHolder;
+		moveHereButton.handleButtonEvent = handleSSBBEvent;
+		moveHereButton.onClick = function()
+							{
+								moveSelectedUnit(this.row,this.column);
+					
+								if(selectedUnit.movementPoints > 0)
+								{
+									displayMovementSquares(selectedUnit.row,selectedUnit.column);
+								}
+								else
+								{
+									removeMovementSquares();
+									stage.update();
+								}
+								
+								removeStackSelectionBox();
+								stage.update();
+							}
+		moveHereButton.draw();
+		
+		//add image
+		var moveHereImage = new Image();
+		moveHereImage.src = "http://kev1shell.github.io/assets/sprites/other/moveHereSymbol.png";
+		moveHereImage.yOffset = index;
+		moveHereImage.onload = function()
+							{
+								var MHImage = new createjs.Bitmap(this);
+								MHImage.x = 24*(column+1)+2;
+								MHImage.y = 54 + 24*row+24*this.yOffset;
+								MHImage.name = "MHImage";
+								stage.addChild(MHImage);
+								
+								stage.update();
+							}
+	}
+	
+	stage.update();
+	
+}
+
 //displays movement squares around the specified tile.
 //only displays squares on tiles that can be moved to.
 function displayMovementSquares(row,column)
@@ -313,6 +582,8 @@ function displayMovementSquares(row,column)
 				}
 				movementSquare.x = 24*c;
 				movementSquare.y = 50 + 24*r;
+				movementSquare.row = r;
+				movementSquare.column = c;
 				movementSquare.name = "movementSquare"+movementSquares.length;
 				stage.addChild(movementSquare);
 				movementSquares.push(movementSquare);
@@ -486,6 +757,8 @@ function handleMapMouseEvent(evt)
 		//infoText = "Tile:(" + row + "," + column + ")";
 		//updateInfoText();
 		
+		removeStackSelectionBox();
+		
 		if(selectedObject == null)
 		{
 			//nothing is selected
@@ -507,6 +780,12 @@ function handleMapMouseEvent(evt)
 				{
 					//if selectedObject is not at (row, column)
 					deSelectAll();
+					selectObject(row,column);
+				}
+				else
+				{
+					deSelectAll();
+					selectObject(row,column);
 				}
 			}
 		}

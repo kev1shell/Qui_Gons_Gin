@@ -19,6 +19,14 @@ var Button = function(_name, _x, _y,_width,_height)
 	this.onClick = null;
 	this.draw = draw;
 	this.handleButtonEvent = handleButtonEvent;
+	this.remove = remove;
+	
+	function remove()
+	{
+		stage.removeChild(this.shape);
+		stage.removeChild(this.textShape);
+		stage.removeChild(this.outlineshape);
+	}
 	
 	function draw(color)
 	{
@@ -44,10 +52,10 @@ var Button = function(_name, _x, _y,_width,_height)
 		stage.addChild(this.shape);
 		
 		//event listeners
-		this.shape.on("mouseover", handleButtonEvent);
-		this.shape.on("mouseout", handleButtonEvent);
-		this.shape.on("mousedown", handleButtonEvent);
-		this.shape.on("pressup", handleButtonEvent);
+		this.shape.on("mouseover", this.handleButtonEvent);
+		this.shape.on("mouseout", this.handleButtonEvent);
+		this.shape.on("mousedown", this.handleButtonEvent);
+		this.shape.on("pressup", this.handleButtonEvent);
 		
 		//button text shape
 		var fontSize = Math.floor(this.height - 2*this.height/5);

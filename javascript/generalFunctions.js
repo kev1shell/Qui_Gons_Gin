@@ -145,7 +145,7 @@ function joinGame()
 		updater(messageArray);
 		
 		//update info text
-		infoText = "Begin your turn";
+		infoText = "You are blue, begin your turn";
 		updateInfoText();
 	}
 	else if(player.color == "red")
@@ -159,7 +159,7 @@ function joinGame()
 		updater(messageArray);
 		
 		//update info text
-		infoText = "Waiting for other players...";
+		infoText = "You are red, Waiting for other players...";
 		updateInfoText();
 	}
 }
@@ -458,6 +458,30 @@ function moveSelectedUnit(row,column)
 	removeMovementSquares();
 }
 
+function addStackSymbol(row,column)
+{
+	
+	var stackSymbol = new Image();
+	stackSymbol.src = "http://kev1shell.github.io/assets/sprites/other/stackSymbol.png"
+	
+	stackSymbol.onload = function()
+							{
+								var stackSymbolImage = new createjs.Bitmap(this);
+								stackSymbolImage.x = 17+24*column;
+								stackSymbolImage.y = 50 + 24*row;
+								stackSymbolImage.name = "stackSymbol"+row+column;
+								stage.addChild(stackSymbolImage);
+								
+								stage.update();
+							}
+}
+
+function removeStackSymbol(row,column)
+{
+	stage.removeChild(stage.getChildByName("stackSymbol"+row+column));
+	stage.update();
+}
+
 //handles the nitty gritty of unit movement
 function unitHandler(row,column)
 {
@@ -473,17 +497,24 @@ function unitHandler(row,column)
 				
 				if(enemyObject == null)
 				{
-					//no worries here
-					moveSelectedUnit(row,column);
-				
-					if(selectedUnit.movementPoints > 0)
+					if(tile.stack.length > 0)
 					{
-						displayMovementSquares(selectedUnit.row,selectedUnit.column);
+						displayStackSelectionBox(row,column);
 					}
 					else
 					{
-						removeMovementSquares();
-						stage.update();
+						//no worries here
+						moveSelectedUnit(row,column);
+					
+						if(selectedUnit.movementPoints > 0)
+						{
+							displayMovementSquares(selectedUnit.row,selectedUnit.column);
+						}
+						else
+						{
+							removeMovementSquares();
+							stage.update();
+						}
 					}
 				}
 				else
@@ -567,7 +598,13 @@ function unitHandler(row,column)
 		else
 		{
 			deSelectAll();
+			selectObject(row,column);
 		}
+	}
+	else
+	{
+		deSelectAll();
+		selectObject(row,column);
 	}
 }
 
@@ -639,6 +676,48 @@ function startTurn()
 	
 }
 
+function removeObjectCost()
+{
+	stage.removeChild(stage.getChildByName("costBackground"));
+	stage.removeChild(stage.getChildByName("costText"));
+	
+	stage.update();
+}
+
+function removeStackSelectionBox()
+{
+	stage.removeChild(stage.getChildByName("stackSelectionBox"));
+	stage.removeChild(stage.getChildByName("SSBInfoBackground"));
+	stage.removeChild(stage.getChildByName("objectName"));
+	stage.removeChild(stage.getChildByName("SSBinfoLine1"));
+	stage.removeChild(stage.getChildByName("SSBinfoLine2"));
+	stage.removeChild(stage.getChildByName("SSBinfoLine3"));
+	stage.removeChild(stage.getChildByName("SSBinfoLine4"));
+	
+	if(stage.getChildByName("moveHereButton") != null)
+	{
+		stage.getChildByName("moveHereButton").parentButton.remove();
+	}
+	
+	stage.removeChild(stage.getChildByName("MHImage"));
+	
+	
+	//remove all stack selection buttons
+	var index = 0;
+	while(stage.getChildByName("SSBButton"+index) != null)
+	{
+		stage.getChildByName("SSBButton"+index).parentButton.remove();
+		index++;
+	}
+	
+	//remove all stack selection images
+	while(stage.getChildByName("SSBImage") != null)
+	{
+		stage.removeChild(stage.getChildByName("SSBImage"));
+	}
+	stage.update();
+}
+
 //removes all selection and movement graphics
 //and resets all selection pointers to null
 function deSelectAll()
@@ -659,6 +738,8 @@ function deSelectAll()
 	stage.removeChild(stage.getChildByName("BuildVillagerButton"));
 	stage.removeChild(stage.getChildByName("buildWarriortext"));
 	stage.removeChild(stage.getChildByName("BuildWarriorButton"));
+	
+	removeStackSelectionBox();
 	
 	removeMovementSquares();
 	
@@ -682,6 +763,9 @@ function selectObject(row,column)
 		//display tile type
 		infoText = tile.type;
 		updateInfoText();
+		
+		//remove stack selection box if necessary
+		removeStackSelectionBox();
 	}
 	else if(tile.stack.length == 1)
 	{
@@ -714,24 +798,7 @@ function selectObject(row,column)
 	}
 	else
 	{
-		//select first unit on stack
-		for(var i=0;i<tile.stack.length;i++)
-		{
-			if(isUnit(tile.stack[i]) == true)
-			{
-				selectedObject = tile.stack[i];
-				selectedUnit = tile.stack[i];
-				displaySelectBox(row,column);
-				selectedObject.displayInfo(stage, player);
-				
-				if(selectedUnit.movementPoints > 0 && selectedUnit.color == player.color)
-				{
-					displayMovementSquares(row,column);
-				}
-				
-				i = tile.stack.length;
-			}
-		}
-		//selectedObject = tile;
+		//stack selection
+		displayStackSelectionBox(row,column);
 	}
 }

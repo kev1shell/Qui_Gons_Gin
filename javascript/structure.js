@@ -132,6 +132,10 @@ function handleBWMouseEvent(evt)
 	
 	if(evt.type == "click")
 	{
+		
+		removeObjectCost();
+		displayObjectCost("warrior");
+		
 		if(canBuild("warrior"))
 		{
 			//build warrior
@@ -150,11 +154,13 @@ function handleBWMouseEvent(evt)
 	if(evt.type == "mouseover")
 	{
 		displayBuildWarriorButton(stage, "blue");
+		displayObjectCost("warrior");
 		stage.update();
 	}
 	if(evt.type == "mouseout")
 	{
 		displayBuildWarriorButton(stage, "lightBlue");
+		removeObjectCost();
 		stage.update();
 	}
 	
@@ -167,6 +173,9 @@ function handleBVgrMouseEvent(evt)
 	
 	if(evt.type == "click")
 	{
+		removeObjectCost();
+		displayObjectCost("villager");
+		
 		if(canBuild("villager"))
 		{
 			//build villager
@@ -185,11 +194,13 @@ function handleBVgrMouseEvent(evt)
 	if(evt.type == "mouseover")
 	{
 		displayBuildVillagerButton(stage, "blue");
+		displayObjectCost("villager");
 		stage.update();
 	}
 	if(evt.type == "mouseout")
 	{
 		displayBuildVillagerButton(stage, "lightBlue");
+		removeObjectCost();
 		stage.update();
 	}
 	
