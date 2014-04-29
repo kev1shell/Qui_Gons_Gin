@@ -37,7 +37,13 @@ var Unit = function()
 			if(tile.stack[i].id == this.id)
 			{
 				tile.stack.splice(i,1);
+				
+				if(map[this.row][this.column].stack.length < 2)
+				{
+					removeStackSymbol(this.row,this.column);
+				}
 			}
+			
 		}
 		
 		//update player data
@@ -87,6 +93,12 @@ var Unit = function()
 					//found unit
 					//remove the unit from the stack
 					map[this.row][this.column].stack.splice(i,1);
+					
+					//check to see if stack is less than 2, if so remove stack symbol
+					if(map[this.row][this.column].stack.length < 2)
+					{
+						removeStackSymbol(this.row,this.column);
+					}
 				}
 			}
 			
@@ -116,6 +128,13 @@ var Unit = function()
 			//add self to new tile's stack
 			map[newRow][newColumn].stack.push(this);
 			
+			//check to see if a new stack has been created:
+			var stackSymbolName = "stackSymbol"+newRow+newColumn;
+			if(map[newRow][newColumn].stack.length == 2 && stage.getChildByName(stackSymbolName) == null)
+			{
+				addStackSymbol(newRow,newColumn);
+				organizeChildren();
+			}
 			
 			this.row = newRow;
 			this.column = newColumn;
@@ -136,7 +155,7 @@ var Unit = function()
 		if(stage.getChildByName("infoLine1") == null)
 		{
 			//line 1
-			var infoLine1 = new createjs.Text("MP: "+this.movementPoints+"/"+this.maxMovementPoints, "bold 9px Arial", "black");
+			var infoLine1 = new createjs.Text("Moves: "+this.movementPoints+"/"+this.maxMovementPoints, "bold 9px Arial", "black");
 			infoLine1.x = 15 + stage.getChildByName("IEtext").x + stage.getChildByName("IEtext").getMeasuredWidth();
 			infoLine1.y = 1;
 			infoLine1.name = "infoLine1";
@@ -162,6 +181,13 @@ var Unit = function()
 			infoLine4.y = stage.getChildByName("infoLine3").y + stage.getChildByName("infoLine3").getMeasuredHeight();
 			infoLine4.name = "infoLine4";
 			stage.addChild(infoLine4);
+			
+			//line 5
+			var infoLine5 = new createjs.Text("Food/turn: "+this.foodUpKeep, "bold 9px Arial", "black");
+			infoLine5.x = stage.getChildByName("infoLine4").x;
+			infoLine5.y = stage.getChildByName("infoLine4").y + stage.getChildByName("infoLine4").getMeasuredHeight();
+			infoLine5.name = "infoLine5";
+			stage.addChild(infoLine5);
 		}
 		else
 		{
@@ -169,7 +195,7 @@ var Unit = function()
 			var infoLine2 = stage.getChildByName("infoLine2");
 			var infoLine3 = stage.getChildByName("infoLine3");
 			var infoLine4 = stage.getChildByName("infoLine4");
-			infoLine1.text = "MP: "+this.movementPoints+"/"+this.maxMovementPoints;
+			infoLine1.text = "Moves: "+this.movementPoints+"/"+this.maxMovementPoints;
 			infoLine2.text = "Health: "+this.health+"/"+this.maxHealth;
 			infoLine3.text = "Attack: "+this.attack;
 			infoLine4.text = "Defense: "+this.defense;
@@ -252,6 +278,9 @@ function handleBVMouseEvent(evt)
 	
 	if(evt.type == "click")
 	{
+		removeObjectCost();
+		displayObjectCost("village");
+		
 		if(canBuild("village"))
 		{
 			//build village
@@ -264,20 +293,22 @@ function handleBVMouseEvent(evt)
 		}
 		else
 		{
-			alert(error);
+			displayWarning(error);
 		}
 	}
 	if(evt.type == "mouseover")
 	{
 		displayBuildVillageButton(stage, "blue");
+		displayObjectCost("village");
 		stage.update();
 	}
 	if(evt.type == "mouseout")
 	{
 		displayBuildVillageButton(stage, "lightBlue");
+		removeObjectCost();
 		stage.update();
 	}
-	
+	cacheStage();
 }
 
 function handleBFMouseEvent(evt)
@@ -287,6 +318,10 @@ function handleBFMouseEvent(evt)
 	
 	if(evt.type == "click")
 	{
+		
+		removeObjectCost();
+		displayObjectCost("farm");
+		
 		if(canBuild("farm"))
 		{
 			//build farm
@@ -299,20 +334,22 @@ function handleBFMouseEvent(evt)
 		}
 		else
 		{
-			alert(error);
+			displayWarning(error);
 		}
 	}
 	if(evt.type == "mouseover")
 	{
 		displayBuildFarmButton(stage, "blue");
+		displayObjectCost("farm");
 		stage.update();
 	}
 	if(evt.type == "mouseout")
 	{
 		displayBuildFarmButton(stage, "lightBlue");
+		removeObjectCost();
 		stage.update();
 	}
-	
+	cacheStage();
 }
 
 

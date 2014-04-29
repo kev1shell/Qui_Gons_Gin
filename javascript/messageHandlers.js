@@ -1,6 +1,34 @@
 
 //Message Handlers
 
+function playerDefeatedCommand(input)
+{
+	/*
+	message format:
+	{"playerDefeated",player.id}
+	*/
+	var playerID = input[1];
+	
+	//find player
+	for(var i=0;i<players.length;i++)
+	{
+		if(players[i].id == playerID)
+		{
+			//found defeated player, update his defeated value
+			players[i].defeated = true;
+			
+		}
+	}
+	
+}
+
+function startGameCommand(input)
+{
+	//message format: ["startGame"]
+	stage.removeAllChildren();
+	displayGameScreen();
+}
+
 function updateUnitCommand(input)
 {
 	/*
@@ -126,12 +154,12 @@ function onLoginCommand(input)
 	updater(messageArray);
 	
 	//Echo back all this player's units
-	for(var i=0;i<player.units.length;i++)
+	/* for(var i=0;i<player.units.length;i++)
 	{
 		var unit = player.units[i];
 		messageArray = ["createUnit",unit.type,player.id,unit.id,unit.row,unit.column];
 		updater(messageArray);
-	}
+	} */
 }
 
 function createUnitCommand(input)

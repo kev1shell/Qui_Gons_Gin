@@ -6,6 +6,8 @@ var Player = function()
 	this.color = "n/a";
 	this.onTurn = false;
 	this.bank = new Bank();
+	this.defeated = false;
+	this.isVictor = false;
 	this.numFarms = 0;
 	this.numVillages = 0;
 	this.numVillagers = 0;
@@ -24,6 +26,9 @@ var Player = function()
 		{
 			createWarrior(stage, map, this, row, column);
 		}
+		
+		//organize children
+		organizeChildren();
 	}
 	
 	function createStructure(stage, map, structureType, row, column)
@@ -36,6 +41,7 @@ var Player = function()
 		{
 			createVillage(stage, map, this, row, column);
 		}
+		//organize children
 	}
 	
 	function createVillage(stage, map, player, row, column)
@@ -63,7 +69,8 @@ var Player = function()
 								village.shape.y = 50 + 24*village.row;
 								village.shape.name = "village"+village.id;
 								stage.addChild(village.shape);
-								
+								organizeChildren();
+								organizeChildren();
 								stage.update();
 							}
 		
@@ -75,6 +82,14 @@ var Player = function()
 		player.bank.stone -= villageStoneCost;
 		updateResources();
 		map[row][column].stack.push(village);
+		
+		//check to see if a new stack has been created:
+		if(map[row][column].stack.length == 2)
+		{
+			addStackSymbol(row,column);
+			organizeChildren();
+		}
+			
 	}
 	
 	function createFarm(stage, map, player, row, column)
@@ -102,7 +117,7 @@ var Player = function()
 								farm.shape.y = 50 + 24*farm.row;
 								farm.shape.name = "farm"+farm.id;
 								stage.addChild(farm.shape);
-								
+								organizeChildren();
 								stage.update();
 							}
 		
@@ -115,6 +130,13 @@ var Player = function()
 		player.bank.stone -= farmStoneCost;
 		updateResources();
 		map[row][column].stack.push(farm);
+		
+		//check to see if a new stack has been created:
+		if(map[row][column].stack.length == 2)
+		{
+			addStackSymbol(row,column);
+			organizeChildren();
+		}
 	}
 	
 	function createWarrior(stage, map, player, row, column)
@@ -152,7 +174,7 @@ var Player = function()
 								warrior.shape.y = 54 + 24*warrior.row;
 								warrior.shape.name = "warrior"+warrior.id;
 								stage.addChild(warrior.shape);
-								
+								organizeChildren();
 								stage.update();
 							}
 		
@@ -165,6 +187,13 @@ var Player = function()
 		player.bank.stone -= warriorStoneCost;
 		updateResources();
 		map[row][column].stack.push(warrior);
+		
+		//check to see if a new stack has been created:
+		if(map[row][column].stack.length == 2)
+		{
+			addStackSymbol(row,column);
+			organizeChildren();
+		}
 	}
 	
 	function createVillager(stage, map, player, row, column)
@@ -202,7 +231,7 @@ var Player = function()
 								villager.shape.y = 54 + 24*villager.row;
 								villager.shape.name = "villager"+villager.id;
 								stage.addChild(villager.shape);
-								
+								organizeChildren();
 								stage.update();
 							}
 		
@@ -215,5 +244,12 @@ var Player = function()
 		player.bank.stone -= villagerStoneCost;
 		updateResources();
 		map[row][column].stack.push(villager);
+		
+		//check to see if a new stack has been created:
+		if(map[row][column].stack.length == 2)
+		{
+			addStackSymbol(row,column);
+			organizeChildren();
+		}
 	}
 }

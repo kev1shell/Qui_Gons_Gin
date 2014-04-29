@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html>
 <style src="css/UIclasses.css"></style>
-<style>h1{color:black;}</style>
 <head>
 	<title>VillageWars</title>
-	<h1 id="colorRibbon">Loading...</h1>
 	<!-- Easeljs graphics package-->
 	<script src="http://code.createjs.com/easeljs-0.7.1.min.js"></script>
 	
@@ -12,34 +10,43 @@
 	<script src = "/socket.io/socket.io.js"></script>
 	
 	<!-- maps -->
-	<script src = "http://googledrive.com/host/0B0t-xySeqXPfYVBpZHU5dHNOQ3M"></script>
+	<script src = "http://kev1shell.github.io/javascript/maps.js"></script>
 	
 	<!-- objectGlobals -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfMTZ1b2JJcEx2ZW8"></script>
+	<script src="http://kev1shell.github.io/javascript/objectGlobals.js"></script>
 	
 	<!-- Tile class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfX3lIV2JEMkJfUm8"></script>
+	<script src="http://kev1shell.github.io/javascript/tile.js"></script>
 	
 	<!-- Unit class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfOGtiWWhxSWV1b0U"></script>
+	<script src="http://kev1shell.github.io/javascript/unit.js"></script>
 	
 	<!-- Structure class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfRlMzUDJTRkgzZ0U"></script>
+	<script src="http://kev1shell.github.io/javascript/structure.js"></script>
 	
 	<!-- Bank class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfOHhzUUNTRlhVa28"></script>
+	<script src="http://kev1shell.github.io/javascript/bank.js"></script>
 	
 	<!-- Player class -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfMDdmNkw2bHJaTUU"></script>
+	<script src="http://kev1shell.github.io/javascript/player.js"></script>
+	
+	<!-- Button class -->
+	<script src="http://kev1shell.github.io/javascript/button.js"></script>
 	
 	<!-- message handlers -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfY1pMUWtaMEdmRW8"></script>
+	<script src="http://kev1shell.github.io/javascript/messageHandlers.js"></script>
 	
 	<!-- general functions -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfTFJENllZSnR6dDA"></script>
+	<script src="http://kev1shell.github.io/javascript/generalFunctions.js"></script>
 	
 	<!-- UI functions -->
-	<script src="https://googledrive.com/host/0B0t-xySeqXPfZEc4dFROckk1dG8"></script>
+	<script src="http://kev1shell.github.io/javascript/UIFunctions.js"></script>
+	
+	<!-- animations -->
+	<script src="http://kev1shell.github.io/javascript/animations.js"></script>
+	
+	<!--sound-->
+	<script src ="https://googledrive.com/host/0B5phRDXhhFKOLTdiU2UxM1hVeGs"></script>
 	
 	<script>
 		/*-------------------global client variables----------------------*/
@@ -57,6 +64,8 @@
 		//player's color set to blue here for test purposes
 		player.color = "blue";
 		player.onTurn = false;
+		
+		var gameStarted = false;
 		
 		//2D array of tile objects representing the
 		//current state of the game "board"
@@ -104,18 +113,36 @@
 			stage = new createjs.Stage("demoCanvas");
 			stage.autoClear = true;
 			stage.enableMouseOver();
-			 
-			displayResourceElement();
+
+			displayDemoMainMenu();
 			
-			displayInfoElement();
+			createjs.Ticker.addEventListener("tick", tick);
+            createjs.Ticker.setFPS(50);
 			
-			displayMapElement();
+		}
+		
+		var stopTicks = false
+		var tickCount = 0;
+		function tick()
+		{
+			tickCount++;
+			if(stopTicks == true)
+			{
+				return;
+			}
 			
-			displayEndTurnElement("lightSlateGrey");
+			//check for defeat
+			checkWinLossConditions();
 			
-			displayTurnCounterElement("salmon");
+			//snow stuff
+			snowHandler();
 			
-			stage.update();
+			//turn counter:
+			if(tickCount == 50)
+			{
+				turnTimer();
+				tickCount = 0;
+			}
 		}
 	
 		function updater(Array)
@@ -125,9 +152,8 @@
 
 		function reciever(message)
 		{
-			//alert(message);
+		
 			var input = message;
-			//alert(Passer);
 			
 			if(input[0] == "login")
 			{
@@ -135,9 +161,7 @@
 			}
 			else if(input[0] == "move")
 			{
-				//alert('move');
 				moveCommand(input);
-				
 			}
 			else if(input[0] == "createUnit")
 			{
@@ -159,6 +183,18 @@
 			{
 				updateUnitCommand(input);
 			}
+			else if(input[0] == "startGame")
+			{
+				startGameCommand(input);
+			}
+			else if(input[0] == "playerDefeated")
+			{
+				playerDefeatedCommand(input);
+			}
+			else if(input[0] == "fight")
+			{
+				fight(input[1]);
+			}
 		}
 		
 		function login(message)
@@ -168,14 +204,6 @@
 			{			
 				//this is player 1 (blue)
 				player.color = "blue";
-				player.onTurn = true;
-				displayEndTurnElement("salmon");
-				displayTurnCounterElement("lightGreen");
-				player.createUnit(stage,map,"villager",5,4);
-				
-				//update color ribbon:
-				document.getElementById("colorRibbon").style.color = player.color;
-				document.getElementById("colorRibbon").innerHTML = player.color+" player";
 				
 				//sendLogin data:
 				messageArray = ["login",player.id,player.color,player.name];
@@ -186,15 +214,6 @@
 			{
 				//this is player 2 (red)
 				player.color = "red";
-				player.createUnit(stage,map,"villager",5,33);
-				
-				//update info text
-				infoText = "Waiting for other players...";
-				updateInfoText();
-				
-				//update color ribbon:
-				document.getElementById("colorRibbon").style.color = player.color;
-				document.getElementById("colorRibbon").innerHTML = player.color+" player";
 				
 				//sendLogin data:
 				messageArray = ["login",player.id,player.color,player.name];
@@ -207,13 +226,6 @@
 				//update info text
 				infoText = "spectating";
 				updateInfoText();
-				
-				//update color ribbon:
-				document.getElementById("colorRibbon").innerHTML = "Spectating";
-				
-				//sendLogin data:
-				messageArray = ["login",player.id,player.color,player.name];
-				updater(messageArray);
 			}
 		}
 		
@@ -238,8 +250,12 @@
 	</script>
 </head>
 <body onLoad="init();">
-	<canvas id="demoCanvas" width="850" height="500">
+	<canvas id="demoCanvas" width="950" height="600">
 		alternate content
 	</canvas>
-</body>
+<!-- 	<audio id="musicBox" src="http://kev1shell.github.io/assets/sounds/music/Perspectives.mp3" autostart="true" loop="true" hidden="true"></audio>
+ -->	<!-- <audio id="musicBox" controls autoplay loop hidden>
+		<source src="http://kev1shell.github.io/assets/sounds/music/Perspectives.mp3" type="audio/mpeg" > -->
+	</audio>
+	</body>
 </html>

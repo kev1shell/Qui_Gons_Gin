@@ -1,5 +1,14 @@
 //Global variables used by villageWars objects
 
+//turn winter starts
+summerLength = 8;
+
+//winter length in turns
+winterLength = 4;
+
+//turn time limit (seconds)
+var turnTime = 60;
+
 //Unit/Structure costs"
 var villagerFoodCost = 4;
 var villagerTimberCost = 0;
@@ -25,7 +34,7 @@ var villagerMaxHealth = 1;
 var villagerDefense = 0;
 var villagerAttack = 0;
 
-var warriorMaxMovementPoints = 2;
+var warriorMaxMovementPoints = 4;
 var warriorMaxHealth = 10;
 var warriorDefense = 2;
 var warriorAttack = 5;

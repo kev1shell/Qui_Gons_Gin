@@ -1,6 +1,7 @@
 //Structure object
 var Structure = function()
 {
+	this.builtUnit = false;
 	this.id = Math.floor(Math.random()*1000000000);
 	this.owner = null;
 	this.type = "n/a";
@@ -132,6 +133,10 @@ function handleBWMouseEvent(evt)
 	
 	if(evt.type == "click")
 	{
+		
+		removeObjectCost();
+		displayObjectCost("warrior");
+		
 		if(canBuild("warrior"))
 		{
 			//build warrior
@@ -144,20 +149,22 @@ function handleBWMouseEvent(evt)
 		}
 		else
 		{
-			alert(error);
+			displayWarning(error);
 		}
 	}
 	if(evt.type == "mouseover")
 	{
 		displayBuildWarriorButton(stage, "blue");
+		displayObjectCost("warrior");
 		stage.update();
 	}
 	if(evt.type == "mouseout")
 	{
 		displayBuildWarriorButton(stage, "lightBlue");
+		removeObjectCost();
 		stage.update();
 	}
-	
+	cacheStage();
 }
 
 function handleBVgrMouseEvent(evt)
@@ -167,8 +174,12 @@ function handleBVgrMouseEvent(evt)
 	
 	if(evt.type == "click")
 	{
+		removeObjectCost();
+		displayObjectCost("villager");
+		
 		if(canBuild("villager"))
 		{
+			
 			//build villager
 			player.createUnit(stage,map,"villager", selectedObject.row, selectedObject.column);
 			
@@ -179,20 +190,22 @@ function handleBVgrMouseEvent(evt)
 		}
 		else
 		{
-			alert(error);
+			displayWarning(error);
 		}
 	}
 	if(evt.type == "mouseover")
 	{
 		displayBuildVillagerButton(stage, "blue");
+		displayObjectCost("villager");
 		stage.update();
 	}
 	if(evt.type == "mouseout")
 	{
 		displayBuildVillagerButton(stage, "lightBlue");
+		removeObjectCost();
 		stage.update();
 	}
-	
+	cacheStage();
 }
 
 
