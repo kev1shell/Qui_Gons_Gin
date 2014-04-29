@@ -4,6 +4,56 @@
 /*---------------------------------------------------------*/
 /*-------------------update functions----------------------*/
 
+//turn timer updater
+function updateTurnTimer()
+{
+	var timeLeft = turnTimeLeft
+	var minutes = "0";
+	var seconds = "";
+	
+	//format the clock:
+	if(timeLeft >= 60)
+	{
+		minutes += "1";
+		timeLeft -= 60;
+		if(timeLeft>= 10)
+		{
+			seconds += timeLeft;
+		}
+		else
+		{
+			seconds += "0" + timeLeft;
+		}
+	}
+	else
+	{
+		minutes += "0";
+		if(timeLeft >= 10)
+		{
+			seconds += timeLeft;
+		}
+		else
+		{
+			seconds += "0" + timeLeft;
+		}
+	}
+	
+	//timer text
+	if(stage.getChildByName("TimerText") != null)
+	{
+		stage.removeChild(stage.getChildByName("TimerText"));
+	}
+	
+	var TimerText = new createjs.Text(minutes+":"+seconds, "bold 14px Arial", "black");
+	TimerText.x = stage.getChildByName("TCtital").x + 7;
+	TimerText.y = 20;
+	TimerText.name = "TimerText";
+	stage.addChild(TimerText);
+	
+	cacheStage();
+	stage.update();
+}
+
 //updates turn counter
 function updateTurnNum()
 {	
@@ -13,9 +63,9 @@ function updateTurnNum()
 		stage.removeChild(stage.getChildByName("TCtext"));
 	}
 	
-	var TCtext = new createjs.Text(turnNum, "bold 14px Arial", "black");
-	TCtext.x = stage.getChildByName("TCtital").x + 1;
-	TCtext.y = 20;
+	var TCtext = new createjs.Text(turnNum, "bold 12px Arial", "black");
+	TCtext.x = stage.getChildByName("TCtital").x + 30;
+	TCtext.y = stage.getChildByName("TCtital").y;
 	TCtext.name = "TCtext";
 	stage.addChild(TCtext);
 	
@@ -175,6 +225,31 @@ function updateResources()
 
 /*----------------------------------------------------------*/
 /*-------------------display screen----------------------*/
+
+function displayVictoryScreen()
+{
+	//some text
+	var titalText = new createjs.Text("Victory!", "bold 54px Arial", "black");
+	titalText.x = 310;
+	titalText.y = 150;
+	titalText.name = "titalText";
+	stage.addChild(titalText);
+	
+	stage.update();
+}
+
+function displayDefeatScreen()
+{
+	//some text
+	var titalText = new createjs.Text("You have been defeated!", "bold 54px Arial", "black");
+	titalText.x = 100;
+	titalText.y = 150;
+	titalText.name = "titalText";
+	stage.addChild(titalText);
+	
+	stage.update();
+}
+
 //this function displays the main game screen (with map, Resources, ect.)
 function displayGameScreen()
 {
@@ -200,41 +275,134 @@ function displayGameScreen()
 		displayTurnCounterElement("salmon");
 	}
 	
+	gameStarted = true;
+	
 	stage.update();
 }
 
+
+function displayHelpThree()
+{
+stage.removeAllChildren();
+	
+	var backButtoner = new Button("backButtoner",550,300,175,50); //constructor: (name,x,y,width,height)
+	backButtoner.text = "Main Menu";//the text on the button
+	//backButtoner.mouseOutColor = "yellow";
+	//backButtoner.mouseInColor = "gold";
+	//backButtoner.mouseDownColor = "orange";
+	backButtoner.onClick = displayDemoMainMenu;//function that the button calls when clicked.
+	
+	
+	var backHelpThree = new Image();
+	backHelpThree.src = "http://students.cse.tamu.edu/tjb33/assets/tuts/tut3.png"
+	
+	backHelpThree.onload = function()
+							{
+								var backHelpThreeShape = new createjs.Bitmap(this);
+								backHelpThreeShape.x = 0;
+								backHelpThreeShape.y = 0;
+								backHelpThreeShape.name = "demoHelpBackground";
+								
+								/*If you're using a background image,
+								add your text and draw the buttons here.
+								Be sure to list them in the order you wish
+								them to be drawn on the canvas!*/
+								stage.addChild(backHelpThreeShape);
+								backButtoner.draw();
+						
+								stage.update();
+							}
+	
+	
+}
+
+
 //This function is a demo health screen, not included in FPII
+function displayHelpTwo()
+{
+	stage.removeAllChildren();
+	
+	//back button
+	var nextButtonTwo = new Button("nextButtonTwo",550,345,175,50);
+	nextButtonTwo.text = "Next";
+	//nextButtonTwo.mouseOutColor = "yellow";
+	//nextButtonTwo.mouseInColor = "gold";
+	//nextButtonTwo.mouseDownColor = "orange";
+	nextButtonTwo.onClick = displayHelpThree;//function that the button calls when clicked.
+	
+	var backButtonTwo = new Button("backButtonTwo",550,400,175,50); //constructor: (name,x,y,width,height)
+	backButtonTwo.text = "Main Menu";//the text on the button
+	//backButtonTwo.mouseOutColor = "yellow";
+	//backButtonTwo.mouseInColor = "gold";
+	//backButtonTwo.mouseDownColor = "orange";
+	backButtonTwo.onClick = displayDemoMainMenu;//function that the button calls when clicked.
+	
+	
+	var backHelpTwo = new Image();
+	backHelpTwo.src = "http://students.cse.tamu.edu/tjb33/assets/tuts/tut2.png"
+	
+	backHelpTwo.onload = function()
+							{
+								var backHelpTwoShape = new createjs.Bitmap(this);
+								backHelpTwoShape.x = 0;
+								backHelpTwoShape.y = 0;
+								backHelpTwoShape.name = "demoHelpBackground";
+								
+								/*If you're using a background image,
+								add your text and draw the buttons here.
+								Be sure to list them in the order you wish
+								them to be drawn on the canvas!*/
+								stage.addChild(backHelpTwoShape);
+								nextButtonTwo.draw();
+								backButtonTwo.draw();
+								stage.update();
+								
+							}
+	
+}
+
+
 function displayDemoHelpScreen()
 {
 	//clear all existing children from the stage
 	stage.removeAllChildren();
 	
-	//plain background
-	var background = new createjs.Shape();
-	background.graphics.beginFill("DarkSlateGray").drawRect(0, 0, stage.canvas.width, stage.canvas.height);
-	background.x = 0;
-	background.y = 0;
-	background.name = "background";
-	stage.addChild(background);
-	
-	//some text
-	var titalText = new createjs.Text("Help", "bold 72px Arial", "black");
-	titalText.x = 200;
-	titalText.y = 30;
-	titalText.name = "titalText";
-	stage.addChild(titalText);
-	
 	//back button
-	var backButton = new Button("backButton",338,170,175,50); //constructor: (name,x,y,width,height)
-	backButton.text = "Back";//the text on the button
-	backButton.mouseOutColor = "yellow";
-	backButton.mouseInColor = "gold";
-	backButton.mouseDownColor = "orange";
-	backButton.onClick = displayDemoMainMenu;//function that the button calls when clicked.
-	backButton.draw();
+	var nextButton = new Button("nextButton",550,345,175,50);
+	nextButton.text = "Next";
+	//nextButton.mouseOutColor = "yellow";
+	//nextButton.mouseInColor = "gold";
+	//nextButton.mouseDownColor = "orange";
+	nextButton.onClick = displayHelpTwo;//function that the button calls when clicked.
 	
-	//update stage
-	stage.update();
+	var backButton = new Button("backButton",550,400,175,50); //constructor: (name,x,y,width,height)
+	backButton.text = "Main Menu";//the text on the button
+	//backButton.mouseOutColor = "yellow";
+	//backButton.mouseInColor = "gold";
+	//backButton.mouseDownColor = "orange";
+	backButton.onClick = displayDemoMainMenu;//function that the button calls when clicked.
+	
+	
+	var backHelp = new Image();
+	backHelp.src = "http://students.cse.tamu.edu/tjb33/assets/tuts/tut1.png"
+	
+	backHelp.onload = function()
+							{
+								var backHelpShape = new createjs.Bitmap(this);
+								backHelpShape.x = 0;
+								backHelpShape.y = 0;
+								backHelpShape.name = "demoHelpBackground";
+								
+								/*If you're using a background image,
+								add your text and draw the buttons here.
+								Be sure to list them in the order you wish
+								them to be drawn on the canvas!*/
+								stage.addChild(backHelpShape);
+								nextButton.draw();
+								backButton.draw();
+								stage.update();
+								
+							}
 }
 
 //This function displayes the main menu and is the first menu the user sees.
@@ -283,7 +451,7 @@ function displayDemoMainMenu()
 								stage.addChild(backgroundShape);
 								stage.addChild(titalText);
 								StartGameButton.draw();
-								//helpButton.draw();
+								helpButton.draw();
 								
 								stage.update();
 							}
@@ -292,6 +460,126 @@ function displayDemoMainMenu()
 
 /*----------------------------------------------------------*/
 /*-------------------display functions----------------------*/
+
+//remove warning message
+function removeWarning()
+{
+	//remove background
+	stage.removeChild(stage.getChildByName("warningBackground"));
+	
+	//remove outline
+	stage.removeChild(stage.getChildByName("warningOutline"));
+	
+	//remove text
+	var index = 0;
+	while(stage.getChildByName("warningLine"+index) != null)
+	{
+		stage.removeChild(stage.getChildByName("warningLine"+index));
+		index++;
+	}
+	
+	//remove button
+	stage.getChildByName("warningButton").parentButton.remove();
+	
+	//release warning controller
+	warningDisplayed = false;
+	
+	//update stage
+	stage.update();
+	
+}
+
+//display warning message
+var warningDisplayed = false;
+function displayWarning(warning)
+{
+	var lines = [];
+	var words = [];
+	var lineLength = 24;
+	var numLines = Math.floor(warning.length/lineLength);
+	var x = 300;
+	var y = 175;
+	
+	//check to ensure a warning is not already up
+	if(warningDisplayed == true)
+	{
+		removeWarning();
+	}
+	
+	warningDisplayed = true;
+	
+	//populate words array
+	for(var i=0;i<warning.length;i++)
+	{
+		var string = "";
+		while(i < warning.length && warning[i] != " ")
+		{
+			string += warning[i];
+			i++;
+		}
+		words.push(string);
+	}
+	
+	//break words into lines
+	var line = "";
+	for(var i=0;i<words.length;i++)
+	{
+		if(line.length+words[i].length <= lineLength)
+		{
+			line += words[i] + " ";
+		}
+		else
+		{
+			lines.push(line);
+			line = "";
+			line += words[i] + " ";
+			continue;
+		}
+		
+		if(i+1 == words.length)
+		{
+			lines.push(line);
+		}
+	}
+	
+	//plain background
+	var background = new createjs.Shape();
+	background.graphics.beginFill("lightCyan").drawRoundRect(0, 0, 200, 100, 20);
+	background.x = x;
+	background.y = y;
+	background.name = "warningBackground";
+	stage.addChild(background);
+	
+	//outline
+	var outline = new createjs.Shape();
+	outline.graphics.beginStroke("black").drawRoundRect(0, 0, 200, 100, 20);
+	outline.x = x;
+	outline.y = y;
+	outline.name = "warningOutline";
+	stage.addChild(outline);
+	
+	//warning text
+	for(var i=0;i<lines.length;i++)
+	{
+		var warningLine = new createjs.Text(lines[i], "bold 12px Courier", "black");
+		warningLine.x = x+15;
+		warningLine.y = y+5 + 14*i;
+		warningLine.name = "warningLine"+i;
+		stage.addChild(warningLine);
+	}
+	
+	//back button
+	var backButton = new Button("warningButton",x+60,y+70,80,20); //constructor: (name,x,y,width,height)
+	backButton.text = "Okay";//the text on the button
+	backButton.onClick = function()
+						{
+							removeWarning();
+						}
+	backButton.draw();
+	
+	//update stage
+	stage.update();
+}
 
 //displays tool tip showing the cost of an object
 function displayObjectCost(object)
@@ -342,6 +630,7 @@ function displayObjectCost(object)
 	stage.addChild(costBackground);
 	stage.addChild(costText);
 	
+	cacheStage();
 	stage.update();
 }
 
@@ -430,6 +719,7 @@ function handleSSBBEvent(evt)
 	{
 		sourceButton.draw(sourceButton.mouseDownColor);
 	}
+	cacheStage();
 }
 
 //This function displays the stack selection box
@@ -562,6 +852,7 @@ function displayStackSelectionBox(row,column)
 							}
 	}
 	
+	cacheStage();
 	stage.update();
 	
 }
@@ -635,9 +926,10 @@ function displayInfoElement()
 {
 	//info element
 	var IEsquare = new createjs.Shape();
-	IEsquare.graphics.beginStroke("Black").drawRect(0, 0, 350, 43);
+	IEsquare.graphics.beginStroke("Black").drawRect(0, 0, 350, 46);
 	IEsquare.x = 325;
 	IEsquare.y = 0;
+	IEsquare.name = "IEsquare";
 	stage.addChild(IEsquare);
 	updateInfoText();
 }
@@ -695,14 +987,14 @@ function displayTurnCounterElement(color)
 	
 	//turn counter
 	var TCsquare = new createjs.Shape();
-	TCsquare.graphics.beginFill(color).drawRoundRect(0, 0, 42, 43, 10);
-	TCsquare.x = stage.getChildByName("ETsquare").x - 45;
+	TCsquare.graphics.beginFill(color).drawRoundRect(0, 0, 58, 43, 10);
+	TCsquare.x = stage.getChildByName("ETsquare").x - 61;
 	TCsquare.y = 0;
 	TCsquare.name = "TCsquare";
 	stage.addChild(TCsquare);
 	
 	//turn counter tital
-	var TCtital = new createjs.Text("Turn", "bold 14px Arial", "black");
+	var TCtital = new createjs.Text("Turn:", "bold 12px Arial", "black");
 	TCtital.x = stage.getChildByName("TCsquare").x + 5;
 	TCtital.y = 5;
 	TCtital.name = "TCtital";
@@ -730,6 +1022,9 @@ function handleETEMouseEvent(evt)
 		endTurn();
 		var messageArray = ["endTurn", player.color];
 		updater(messageArray);
+		
+		turnTimeLeft = turnTime;
+		updateTurnTimer();
 	}
 	if(evt.type == "mouseover" && player.onTurn == true)
 	{
@@ -747,6 +1042,7 @@ function handleETEMouseEvent(evt)
 		displayEndTurnElement("darkRed");
 		stage.update();
 	}
+	cacheStage();
 }
 
 //handles map mouse events.
@@ -799,8 +1095,8 @@ function handleMapMouseEvent(evt)
 		}
 		
 	}
-	
-	//stage.update();
+	cacheStage();
+	stage.update();
 }
 
 /*-------------------------------------------------------------*/
@@ -820,9 +1116,17 @@ function handleRELoad()
 //loads the map image
 function handleMapLoad()
 {
+	
+	if(stage.getChildByName("mapShape") != null)
+	{
+		stage.update();
+		return;
+	}
+	
 	bitmap = new createjs.Bitmap(mapElement);
 	bitmap.x = 0;
 	bitmap.y = 50;
+	bitmap.name = "mapShape";
 	
 	var mapBackground = new createjs.Shape();
 	mapBackground.graphics.beginFill("white").drawRect(0, 0, 840, 432);
@@ -834,6 +1138,7 @@ function handleMapLoad()
 	stage.addChild(mapBackground);
 	stage.addChild(bitmap);
 	
+	organizeChildren();
 	stage.update();
 }
 

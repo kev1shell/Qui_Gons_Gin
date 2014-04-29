@@ -1,8 +1,207 @@
 
 // General Functions
 
-//called by one client and FORCES all other clients to start the game.
-//Only ONE client should call this function.
+//call this to start winter
+var isWinter = false;
+var turnsInWinter = 0;
+var turnsInSummer = 0;
+function winterController()
+{
+	if(isWinter == true)
+	{
+		if(turnsInWinter == winterLength - 2)
+		{
+			//load med snow map
+			loadMapMediumSnow();
+			turnsInWinter++;
+		}
+		else if(turnsInWinter == winterLength - 1)
+		{
+			//load map light snow
+			loadMapLightSnow();
+			turnsInWinter++;
+		}
+		else if(turnsInWinter == winterLength)
+		{
+			//winter is over!
+			isWinter = false;
+			turnsInWinter = 0;
+			turnsInSummer = 0;
+			loadMapNoSnow();
+			player.bank.foodRate += player.numFarms*farmCollectionRate;
+			updateResources();
+			displayWarning("Winter is Over!");
+			
+			//make winters longer
+			winterLength += 2;
+			
+			//make summers shorter
+			if(summerLength > 4)
+			{
+				summerLength--;
+			}
+		}
+		else
+		{
+			turnsInWinter++;
+		}
+	}
+	else
+	{
+		if(turnsInSummer == summerLength - 2)
+		{
+			//load light snow map
+			loadMapLightSnow();
+			turnsInSummer++;
+		}
+		else if(turnsInSummer == summerLength - 1)
+		{
+			//load map medium snow
+			loadMapMediumSnow();
+			turnsInSummer++;
+		}
+		else if(turnsInSummer == summerLength)
+		{
+			//winter is here!
+			isWinter = true;
+			turnsInWinter = 0;
+			turnsInSummer = 0;
+			loadMapHeavySnow();
+			player.bank.foodRate -= player.numFarms*farmCollectionRate;
+			updateResources();
+			displayWarning("Winter is here!")
+		}
+		else
+		{
+			turnsInSummer++;
+		}
+	}
+	
+}
+
+//turnTimer
+var turnTimeLeft = turnTime;	//time left in active turn in seconds
+function turnTimer()
+{
+	if(player.onTurn == false)
+	{
+		return;
+	}
+	
+	//check if time's up
+	if(turnTimeLeft <= 0)
+	{
+		//end turn
+		displayEndTurnElement("red");
+		stage.update();
+		
+		infoText = "Turn Ended";
+		updateInfoText();
+		
+		//startTurn();
+		endTurn();
+		var messageArray = ["endTurn", player.color];
+		updater(messageArray);
+		
+		turnTimeLeft = turnTime;
+	} 
+	
+	turnTimeLeft--;
+	updateTurnTimer();
+	
+}
+
+//check for defeat
+function checkWinLossConditions()
+{
+	
+	if(player.isVictor == true)
+	{
+		return;
+	}
+	
+	if(player.defeated == false && isDefeated() == true && gameStarted == true)
+	{
+		//player has lost
+		player.defeated = true;
+		
+		infoText = "You have been Defeated";
+		updateInfoText();
+		
+		displayDefeatScreen();
+		player.onTurn = false;
+		
+		//send message informing other clients this player lost.
+		var messageArray = ["playerDefeated", player.id];
+		updater(messageArray);
+	}
+	
+	//check for victory
+	var count = 0;
+	for(var i=0;i<players.length;i++)
+	{
+		if(players[i].defeated == true)
+		{
+			count++;
+		}
+	}
+	
+	if(count == players.length - 1 && player.defeated == false && gameStarted == true)
+	{
+		//player has won
+		infoText = "Victory!";
+		updateInfoText();
+		
+		player.isVictor = true;
+		
+		displayVictoryScreen();
+		player.onTurn = false;
+	}
+}
+
+//returns true if player is defeated, false otherwise
+function isDefeated()
+{
+	/*the player will lose if:
+	
+	case 1: the player has no villages and no mobile units
+	
+	case 2: the player has no mobile units, a food rate of 0, and a food stock of less than min amount required for a villager
+	*/
+	
+	//case1
+	//check for villages
+	var hasVillage = false;
+	for(var i=0;i<player.structures.length;i++)
+	{
+		if(player.structures[i].type == "village")
+		{
+			hasVillage = true;
+		}
+	}
+	
+	//check for units
+	var hasUnits = false;
+	if(player.units.length > 0)
+	{
+		hasUnits = true;
+	}
+	
+	//check for case 1
+	if(hasVillage == false && hasUnits == false)
+	{
+		return true;
+	}
+	
+	//check for case 2
+	if(hasUnits == false && player.bank.foodRate == 0 && player.bank.food < villagerFoodCost)
+	{
+		return true;
+	}
+	
+	return false;
+	
+}
 
 //this function organizes the graphics children into the order
 //we want them to be drawn in.
@@ -14,6 +213,7 @@ function organizeChildren()
 	var structures = [];
 	var other = [];
 	var selectionObjects = [];
+	var particleShapes = [];
 	
 	children = stage.children;
 	
@@ -31,11 +231,16 @@ function organizeChildren()
 			continue;
 		}
 		
+		if(name.indexOf("particle") == 0)
+		{
+			particleShapes.push(children[i]);
+		}
+		
 		if(name.indexOf("villager") != 0 && name.indexOf("warrior") != 0)
 		{
 			if(name.indexOf("farm") != 0 && name.indexOf("village") != 0)
 			{
-				if(name.indexOf("movementSquare") == -1 && name.indexOf("selectSquare") == -1)
+				if(name.indexOf("movementSquare") == -1 && name.indexOf("selectSquare") == -1 && name.indexOf("stackSymbol") == -1)
 				{
 					other.push(children[i]);
 					continue;
@@ -86,7 +291,7 @@ function organizeChildren()
 			continue;
 		}
 		
-		if(name.indexOf("movementSquare") == 0 || name.indexOf("selectSquare") == 0)
+		if(name.indexOf("movementSquare") == 0 || name.indexOf("selectSquare") == 0 ||  name.indexOf("stackSymbol") == 0)
 		{
 			selectionObjects.push(children[i]);
 		}
@@ -110,6 +315,11 @@ function organizeChildren()
 	for(var i=0;i<selectionObjects.length;i++)
 	{
 		result.push(selectionObjects[i]);
+	}
+	
+	for(var i=0;i<particleShapes.length;i++)
+	{
+		result.push(particleShapes[i]);
 	}
 	
 	stage.children = result;
@@ -197,6 +407,11 @@ function canBuild(object)
 	}
 	else if(object == "farm")
 	{
+		if(isWinter == true)
+		{
+			error = "You cannot build farms in winter!";
+			return false;
+		}
 		
 		if(player.bank.food >= farmFoodCost && player.bank.timber >= farmTimberCost & player.bank.stone >= farmStoneCost)
 		{
@@ -408,19 +623,22 @@ function combat(unitA, unitB)
 	}
 } //end of Combat() function
 
-//kills random unit
+//removes movementSquares from the movementSquares array and the stage
 function killRandomUnit()
 {
 	var index = Math.floor(Math.random()*player.units.length);
 	var unit = player.units[index];
 	
+	var type = unit.type;
+	
 	unit.remove();
 	var messageArray = ["remove", unit.id,unit.row,unit.column];
 	updater(messageArray);
-	alert("Your villages starving! you have lost a "+unit.type+"!");
+	var warning = "Your village is starving! you have lost a "+type+"!";
+	displayWarning(warning);
 }
 
-//removes movementSquares from the movementSquares array and the stage
+//removes movement squares from graphics stage.
 function removeMovementSquares()
 {
 	while(movementSquares.length > 0)
@@ -472,28 +690,69 @@ function moveSelectedUnit(row,column)
 }
 
 //adds a stack symbol at the specified tile
+var stackSymbols = 0;
+var makingStackSymbol = false;
 function addStackSymbol(row,column)
 {
 	
-	var stackSymbol = new Image();
-	stackSymbol.src = "http://kev1shell.github.io/assets/sprites/other/stackSymbol.png"
+	if(map[row][column].hasStackSymbol == true)
+	{
+		return;
+	}
 	
-	stackSymbol.onload = function()
-							{
-								var stackSymbolImage = new createjs.Bitmap(this);
-								stackSymbolImage.x = 17+24*column;
-								stackSymbolImage.y = 50 + 24*row;
-								stackSymbolImage.name = "stackSymbol"+row+column;
-								stage.addChild(stackSymbolImage);
-								
-								stage.update();
-							}
+	
+	
+	if(makingStackSymbol == true)
+	{
+		return;
+	}
+	else
+	{
+		makingStackSymbol = true;
+	}
+	
+	var stackSymbolName = "stackSymbol"+row+column;
+	if(stage.getChildByName(stackSymbolName) != null )
+	{
+		//don't freakin make another one
+		return;
+	}
+	else
+	{
+		
+	
+		var stackSymbol = new Image();
+		stackSymbol.src = "http://kev1shell.github.io/assets/sprites/other/stackSymbol.png"
+		
+		stackSymbol.onload = function()
+								{
+									var stackSymbolImage = new createjs.Bitmap(this);
+									stackSymbolImage.x = 17+24*column;
+									stackSymbolImage.y = 50 + 24*row;
+									stackSymbolImage.name = "stackSymbol"+row+column;
+									
+									var stackSymbolName = "stackSymbol"+row+column;
+									if(stage.getChildByName(stackSymbolName) == null && map[row][column].hasStackSymbol == false)
+									{
+										stage.addChild(stackSymbolImage);
+										stackSymbols++;
+									}
+									map[row][column].hasStackSymbol = true;
+									stage.update();
+								}
+	}
+	makingStackSymbol = false;
 }
 
 //removes a stack symbol from the specified tile.
 function removeStackSymbol(row,column)
 {
-	stage.removeChild(stage.getChildByName("stackSymbol"+row+column));
+	map[row][column].hasStackSymbol = false;
+	while(stage.getChildByName("stackSymbol"+row+column) != null)
+	{
+		stage.removeChild(stage.getChildByName("stackSymbol"+row+column));
+		stackSymbols--;
+	}
 	stage.update();
 }
 
@@ -652,6 +911,12 @@ function endTurn()
 //called when a player begins a turn.
 function startTurn()
 {
+	//check to ensure player has not lost
+	if(player.defeated == true)
+	{
+		return;
+	}
+	
 	//deSelect units
 	deSelectAll();
 	player.onTurn = true;
@@ -661,6 +926,12 @@ function startTurn()
 	
 	infoText = "Begin your turn"
 	updateInfoText();
+	
+	//allow all structures to build units
+	for(var i=0;i<player.structures.length();i++)
+	{
+		player.structures[i].builtUnit = false;
+	}
 	
 	//refresh movement points
 	for(var j=0;j<players.length;j++)
@@ -689,6 +960,13 @@ function startTurn()
 	//increment turn counter
 	turnNum++;
 	updateTurnNum();
+	
+	//reset timer
+	turnTimeLeft = turnTime;
+	updateTurnTimer();
+	
+	//check for winter
+	winterController();
 	
 	//do some other shit maybe
 	
@@ -749,6 +1027,7 @@ function deSelectAll()
 	stage.removeChild(stage.getChildByName("infoLine2"));
 	stage.removeChild(stage.getChildByName("infoLine3"));
 	stage.removeChild(stage.getChildByName("infoLine4"));
+	stage.removeChild(stage.getChildByName("infoLine5"));
 	stage.removeChild(stage.getChildByName("selectSquare"));
 	stage.removeChild(stage.getChildByName("BFtext"));
 	stage.removeChild(stage.getChildByName("BuildFarmButton"));
@@ -826,12 +1105,7 @@ function selectObject(row,column)
 //Fight animation
 function fight(color)
 {
-	var backer = new createjs.Shape();
-	backer.graphics.beginFill("DarkSlateGray").drawRect(0, 0, stage.canvas.width, stage.canvas.height-50);
-	backer.x = 0;
-	backer.y = 50;
-	backer.name = "backer";
-	stage.addChild(backer);
+
 	stage.update();
         if (color == 'blue'){
                 var ss = new createjs.SpriteSheet({
@@ -841,8 +1115,8 @@ function fight(color)
                                         "images": ["http://students.cse.tamu.edu/tjb33/assets/sprites/animate/blueKillRed.png"],
                                         "frames":
                                                 {
-                                                        "height": 100,
-                                                        "width":150,
+                                                        "height": 224,
+                                                        "width": 333,
                                                         "regX": 0,
                                                         "regY": 0,
                                                         "count": 15
@@ -853,9 +1127,6 @@ function fight(color)
                         grant.y = 150;
 						grant.name = "grant";
                         // Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
-                        stage.addChild(grant);
-                        createjs.Ticker.setFPS(10);
-                        createjs.Ticker.addEventListener("tick", stage);
                 }
         
         else if(color == 'red'){
@@ -866,8 +1137,8 @@ function fight(color)
                                         "images": ["http://students.cse.tamu.edu/tjb33/assets/sprites/animate/redKillBlue.png"],
                                         "frames":
                                                 {
-                                                        "height": 100,
-                                                        "width":150,
+                                                        "height": 224,
+                                                        "width": 333,
                                                         "regX": 0,
                                                         "regY": 0,
                                                         "count": 15
@@ -879,15 +1150,31 @@ function fight(color)
 						grant.name = "grant";
 
                         // Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
-                        stage.addChild(grant);
-                        createjs.Ticker.setFPS(10);
-                        createjs.Ticker.addEventListener("tick", stage);
                 }
+	var fightBack = new Image();
+	fightBack.src = "http://students.cse.tamu.edu/tjb33/assets/sprites/animate/fightBack.png"
+	playBattleSounds();
+	fightBack.onload = function()
+							{
+								var fightBackShape = new createjs.Bitmap(this);
+								fightBackShape.x = 0;
+								fightBackShape.y = 0;
+								fightBackShape.name = "fightBackShape";
+								
+								/*If you're using a background image,
+								add your text and draw the buttons here.
+								Be sure to list them in the order you wish
+								them to be drawn on the canvas!*/
+								stage.addChild(fightBackShape);
+								stage.addChild(grant);
+								createjs.Ticker.setFPS(10);
+								createjs.Ticker.addEventListener("tick", stage);
+							}
 		setTimeout(function() {
 			stage.removeChild(stage.getChildByName("grant"));
-			stage.removeChild(stage.getChildByName("backer"));
+			stage.removeChild(stage.getChildByName("fightBackShape"));
+			createjs.Ticker.setFPS(1);
 			stage.update();
 			}, (1.5 * 1000));		
 		
-        }
-
+}

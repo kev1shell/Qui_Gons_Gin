@@ -10,7 +10,7 @@
 	<script src = "/socket.io/socket.io.js"></script>
 	
 	<!-- maps -->
-	<script src = "http://googledrive.com/host/0B0t-xySeqXPfYVBpZHU5dHNOQ3M"></script>
+	<script src = "http://kev1shell.github.io/javascript/maps.js"></script>
 	
 	<!-- objectGlobals -->
 	<script src="http://kev1shell.github.io/javascript/objectGlobals.js"></script>
@@ -37,10 +37,16 @@
 	<script src="http://kev1shell.github.io/javascript/messageHandlers.js"></script>
 	
 	<!-- general functions -->
-	<script src="https://googledrive.com/host/0B5phRDXhhFKORzdBS3ZSMWVJcFU"></script>
+	<script src="http://kev1shell.github.io/javascript/generalFunctions.js"></script>
 	
 	<!-- UI functions -->
 	<script src="http://kev1shell.github.io/javascript/UIFunctions.js"></script>
+	
+	<!-- animations -->
+	<script src="http://kev1shell.github.io/javascript/animations.js"></script>
+	
+	<!--sound-->
+	<script src ="https://googledrive.com/host/0B5phRDXhhFKOLTdiU2UxM1hVeGs"></script>
 	
 	<script>
 		/*-------------------global client variables----------------------*/
@@ -58,6 +64,8 @@
 		//player's color set to blue here for test purposes
 		player.color = "blue";
 		player.onTurn = false;
+		
+		var gameStarted = false;
 		
 		//2D array of tile objects representing the
 		//current state of the game "board"
@@ -108,7 +116,33 @@
 
 			displayDemoMainMenu();
 			
-			//displayGameScreen();
+			createjs.Ticker.addEventListener("tick", tick);
+            createjs.Ticker.setFPS(50);
+			
+		}
+		
+		var stopTicks = false
+		var tickCount = 0;
+		function tick()
+		{
+			tickCount++;
+			if(stopTicks == true)
+			{
+				return;
+			}
+			
+			//check for defeat
+			checkWinLossConditions();
+			
+			//snow stuff
+			snowHandler();
+			
+			//turn counter:
+			if(tickCount == 50)
+			{
+				turnTimer();
+				tickCount = 0;
+			}
 		}
 	
 		function updater(Array)
@@ -152,6 +186,10 @@
 			else if(input[0] == "startGame")
 			{
 				startGameCommand(input);
+			}
+			else if(input[0] == "playerDefeated")
+			{
+				playerDefeatedCommand(input);
 			}
 			else if(input[0] == "fight")
 			{
@@ -215,5 +253,9 @@
 	<canvas id="demoCanvas" width="950" height="600">
 		alternate content
 	</canvas>
-</body>
+<!-- 	<audio id="musicBox" src="http://kev1shell.github.io/assets/sounds/music/Perspectives.mp3" autostart="true" loop="true" hidden="true"></audio>
+ -->	<!-- <audio id="musicBox" controls autoplay loop hidden>
+		<source src="http://kev1shell.github.io/assets/sounds/music/Perspectives.mp3" type="audio/mpeg" > -->
+	</audio>
+	</body>
 </html>

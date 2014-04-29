@@ -1,6 +1,7 @@
 //Structure object
 var Structure = function()
 {
+	this.builtUnit = false;
 	this.id = Math.floor(Math.random()*1000000000);
 	this.owner = null;
 	this.type = "n/a";
@@ -148,7 +149,7 @@ function handleBWMouseEvent(evt)
 		}
 		else
 		{
-			alert(error);
+			displayWarning(error);
 		}
 	}
 	if(evt.type == "mouseover")
@@ -163,7 +164,7 @@ function handleBWMouseEvent(evt)
 		removeObjectCost();
 		stage.update();
 	}
-	
+	cacheStage();
 }
 
 function handleBVgrMouseEvent(evt)
@@ -178,6 +179,7 @@ function handleBVgrMouseEvent(evt)
 		
 		if(canBuild("villager"))
 		{
+			
 			//build villager
 			player.createUnit(stage,map,"villager", selectedObject.row, selectedObject.column);
 			
@@ -188,7 +190,7 @@ function handleBVgrMouseEvent(evt)
 		}
 		else
 		{
-			alert(error);
+			displayWarning(error);
 		}
 	}
 	if(evt.type == "mouseover")
@@ -203,7 +205,7 @@ function handleBVgrMouseEvent(evt)
 		removeObjectCost();
 		stage.update();
 	}
-	
+	cacheStage();
 }
 
 

@@ -129,7 +129,8 @@ var Unit = function()
 			map[newRow][newColumn].stack.push(this);
 			
 			//check to see if a new stack has been created:
-			if(map[newRow][newColumn].stack.length == 2)
+			var stackSymbolName = "stackSymbol"+newRow+newColumn;
+			if(map[newRow][newColumn].stack.length == 2 && stage.getChildByName(stackSymbolName) == null)
 			{
 				addStackSymbol(newRow,newColumn);
 				organizeChildren();
@@ -154,7 +155,7 @@ var Unit = function()
 		if(stage.getChildByName("infoLine1") == null)
 		{
 			//line 1
-			var infoLine1 = new createjs.Text("MP: "+this.movementPoints+"/"+this.maxMovementPoints, "bold 9px Arial", "black");
+			var infoLine1 = new createjs.Text("Moves: "+this.movementPoints+"/"+this.maxMovementPoints, "bold 9px Arial", "black");
 			infoLine1.x = 15 + stage.getChildByName("IEtext").x + stage.getChildByName("IEtext").getMeasuredWidth();
 			infoLine1.y = 1;
 			infoLine1.name = "infoLine1";
@@ -180,6 +181,13 @@ var Unit = function()
 			infoLine4.y = stage.getChildByName("infoLine3").y + stage.getChildByName("infoLine3").getMeasuredHeight();
 			infoLine4.name = "infoLine4";
 			stage.addChild(infoLine4);
+			
+			//line 5
+			var infoLine5 = new createjs.Text("Food/turn: "+this.foodUpKeep, "bold 9px Arial", "black");
+			infoLine5.x = stage.getChildByName("infoLine4").x;
+			infoLine5.y = stage.getChildByName("infoLine4").y + stage.getChildByName("infoLine4").getMeasuredHeight();
+			infoLine5.name = "infoLine5";
+			stage.addChild(infoLine5);
 		}
 		else
 		{
@@ -187,7 +195,7 @@ var Unit = function()
 			var infoLine2 = stage.getChildByName("infoLine2");
 			var infoLine3 = stage.getChildByName("infoLine3");
 			var infoLine4 = stage.getChildByName("infoLine4");
-			infoLine1.text = "MP: "+this.movementPoints+"/"+this.maxMovementPoints;
+			infoLine1.text = "Moves: "+this.movementPoints+"/"+this.maxMovementPoints;
 			infoLine2.text = "Health: "+this.health+"/"+this.maxHealth;
 			infoLine3.text = "Attack: "+this.attack;
 			infoLine4.text = "Defense: "+this.defense;
@@ -285,7 +293,7 @@ function handleBVMouseEvent(evt)
 		}
 		else
 		{
-			alert(error);
+			displayWarning(error);
 		}
 	}
 	if(evt.type == "mouseover")
@@ -300,7 +308,7 @@ function handleBVMouseEvent(evt)
 		removeObjectCost();
 		stage.update();
 	}
-	
+	cacheStage();
 }
 
 function handleBFMouseEvent(evt)
@@ -326,7 +334,7 @@ function handleBFMouseEvent(evt)
 		}
 		else
 		{
-			alert(error);
+			displayWarning(error);
 		}
 	}
 	if(evt.type == "mouseover")
@@ -341,7 +349,7 @@ function handleBFMouseEvent(evt)
 		removeObjectCost();
 		stage.update();
 	}
-	
+	cacheStage();
 }
 
 
